@@ -1,20 +1,19 @@
 # Sprint Planning
 
-This document outlines the roadmap for delivering the 6 core Epics of the platform over a series of 5 structured sprints.
-
-## Sprint 1: Base Infrastructure & Discovery
+## Sprint 0: Base Infrastructure & Discovery
 **Goal:** Establish the technical foundation and instantiate the core data model.
 
 * **Epic: Infrastructure**
   * Automate infrastructure provisioning and configuration management using Terraform and Ansible.
   * Containerize all basic micro-services using Docker.
+  * Configure automated CI/CD pipelines targeting both pre-production and production environments.
 * **Epic: Catalog Data**
   * Set up the PostgreSQL database for persistent game data.
   * Develop the internal `Fetch_api` service to start synchronizing data from the IGDB API.
 
 ---
 
-## Sprint 2: Platform Core & Authentication
+## Sprint 1: Platform Core & Authentication
 **Goal:** Implement container orchestration, user identity, and advanced data search.
 
 * **Epic: Infrastructure**
@@ -28,7 +27,7 @@ This document outlines the roadmap for delivering the 6 core Epics of the platfo
 
 ---
 
-## Sprint 3: Transactions & Streaming Setup
+## Sprint 2: Transactions & Streaming Setup
 **Goal:** Unlock the primary commercial flow and establish the real-time communication backbone.
 
 * **Epic: Marketplace**
@@ -40,7 +39,7 @@ This document outlines the roadmap for delivering the 6 core Epics of the platfo
 
 ---
 
-## Sprint 4: Integrations & Active Notifications
+## Sprint 3: Integrations & Active Notifications
 **Goal:** Polish the buying experience and deliver active insights to users.
 
 * **Epic: Marketplace**
@@ -53,12 +52,12 @@ This document outlines the roadmap for delivering the 6 core Epics of the platfo
 
 ---
 
-## Sprint 5: Social Features & Platform Observability
+## Sprint 4: Social Features & Platform Observability
 **Goal:** Maximize user engagement and ensure production readiness.
 
 * **Epic: User Experience**
   * Roll out the social gamification system (e.g., seniority badges).
   * Launch the custom engine to recommend "Trending" games and match user preferences.
 * **Epic: Infrastructure**
-  * Configure automated CI/CD pipelines targeting both pre-production and production environments.
+  
   * Deploy the centralized observability stack utilizing Grafana for metrics and Elasticstack for log aggregation.
