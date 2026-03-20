@@ -4,6 +4,11 @@ import {
   type BestsellerGame,
   type DealTier,
   type Platform,
+  type GameDetail,
+  type DeluxePerk,
+  type DLCItem,
+  type Achievement,
+  type RelatedGame,
 } from "./types";
 
 export const heroSlides: HeroSlide[] = [
@@ -786,5 +791,135 @@ export const catalogGames: Game[] = [
     price: 12.49,
     badges: ["new"],
     releaseDate: "2026-03-19",
+  },
+];
+
+/* ── Product Detail Page: Cyber Stellar 2088 ── */
+
+export const cyberStellarDetail: GameDetail = {
+  id: "pd1",
+  title: "Cyber Stellar 2088",
+  slug: "cyber-stellar-2088",
+  platform: "steam",
+  genres: ["Action", "RPG", "Sci-Fi"],
+  price: 44.99,
+  badges: [],
+  description: [
+    "In a world where memories are traded like currency and the sky is a permanent canvas of corporate advertising, one mercenary will trigger the collapse of the ultimate data vault.",
+    "Cyber Stellar 2088 is the definitive open-world RPG experience. Explore the sprawling megacity of Stellaris, from its rain-slicked neon spires to its crumbling subterranean slums. Customise your cybernetic enhancements, build your reputation among rival factions, and make choices that will ripple through the city's power structures.",
+  ],
+  developer: "Nebula Interactive",
+  publisher: "Condensation Corp",
+  releaseDate: "August 22, 2088",
+  features: ["WORLD PLAYER", "ACHIEVEMENTS", "CONTROLLER SUPPORT", "CLOUD SAVES"],
+  languages: [
+    { language: "English", interface: true, audio: true, subtitles: true },
+    { language: "Japanese", interface: true, audio: true, subtitles: true },
+    { language: "German", interface: true, audio: false, subtitles: true },
+  ],
+  metaScore: 88,
+  recommendedPercent: 94,
+  ageRating: "M 17+",
+  editionStandardPrice: 44.99,
+  editionDeluxePrice: 79.99,
+  systemRequirements: {
+    minimum: {
+      os: "Windows 10/11 64-bit",
+      processor: "Intel Core i5-4992 / Ryzen 5 1600",
+      memory: "12 GB RAM",
+      graphics: "NVIDIA GeForce GTX 1060 6GB",
+      storage: "70 GB SSD",
+    },
+    recommended: {
+      os: "Windows 10/11 64-bit",
+      processor: "Intel Core i7-9700 / Ryzen 7 3700X",
+      memory: "16 GB RAM",
+      graphics: "NVIDIA GeForce RTX 3070 8GB",
+      storage: "70 GB SSD",
+    },
+  },
+};
+
+export const deluxePerks: DeluxePerk[] = [
+  {
+    icon: "confirmation_number",
+    title: "Season Pass",
+    description: "Access to all three upcoming story expansions.",
+  },
+  {
+    icon: "shield",
+    title: "Onyx Armor Set",
+    description: "Exclusive high-spec tactical gear for early game.",
+  },
+  {
+    icon: "music_note",
+    title: "Hi-Res Soundtrack",
+    description: "45 tracks of heavy synth-wave excellence.",
+  },
+  {
+    icon: "photo_camera",
+    title: "Artbook PDF",
+    description: "200 pages of concept art and world-building.",
+  },
+];
+
+export const dlcItems: DLCItem[] = [
+  { id: "dlc1", title: "Neon Shadows Expansion", price: 14.99 },
+  { id: "dlc2", title: "Chrome Vehicle Pack", price: 9.99 },
+];
+
+export const achievements: Achievement[] = [
+  { id: "a1", title: "First Steps", icon: "directions_walk", unlocked: true },
+  { id: "a2", title: "Hacker Elite", icon: "terminal", unlocked: true },
+  { id: "a3", title: "Ghost Runner", icon: "sprint", unlocked: true },
+  { id: "a4", title: "Data Vault", icon: "folder_special", unlocked: true },
+  { id: "a5", title: "Neon Master", icon: "auto_awesome", unlocked: false },
+  { id: "a6", title: "Lock Picker", icon: "lock_open", unlocked: false },
+  { id: "a7", title: "Cyber Medic", icon: "healing", unlocked: false },
+  { id: "a8", title: "Sharp Shooter", icon: "gps_fixed", unlocked: false },
+  { id: "a9", title: "Explorer", icon: "explore", unlocked: false },
+  { id: "a10", title: "Endgame", icon: "emoji_events", unlocked: true },
+];
+
+export const relatedGames: RelatedGame[] = [
+  {
+    id: "rg1",
+    title: "Neural Void: Syndicate",
+    slug: "neural-void-syndicate",
+    platform: "steam",
+    genres: ["RPG"],
+    price: 30.99,
+    badges: [],
+    genreBadge: "RPG",
+  },
+  {
+    id: "rg2",
+    title: "Digital Ghost: Protocols",
+    slug: "digital-ghost-protocols",
+    platform: "steam",
+    genres: ["Hacking", "Stealth"],
+    price: 19.99,
+    badges: [],
+    genreBadge: "HACKING",
+  },
+  {
+    id: "rg3",
+    title: "Orbital Drift",
+    slug: "orbital-drift",
+    platform: "steam",
+    genres: ["Racing"],
+    price: 54.99,
+    badges: [],
+    genreBadge: "RACING",
+  },
+  {
+    id: "rg4",
+    title: "The Monolith Files",
+    slug: "the-monolith-files",
+    platform: "steam",
+    genres: ["Adventure"],
+    price: 24.99,
+    badges: [],
+    genreBadge: "ADVENTURE",
   },
 ];

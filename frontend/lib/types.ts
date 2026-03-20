@@ -59,3 +59,58 @@ export interface CatalogFilters {
   priceMin: number;
   priceMax: number;
 }
+
+/* ── Product Detail Page ── */
+
+export interface LanguageSupport {
+  language: string;
+  interface: boolean;
+  audio: boolean;
+  subtitles: boolean;
+}
+
+export interface SystemRequirements {
+  os: string;
+  processor: string;
+  memory: string;
+  graphics: string;
+  storage: string;
+}
+
+export interface GameDetail extends Game {
+  description: string[];
+  developer: string;
+  publisher: string;
+  features: string[];
+  languages: LanguageSupport[];
+  metaScore: number;
+  recommendedPercent: number;
+  ageRating: string;
+  editionStandardPrice: number;
+  editionDeluxePrice: number;
+  systemRequirements: {
+    minimum: SystemRequirements;
+    recommended: SystemRequirements;
+  };
+}
+
+export interface DeluxePerk {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+export interface DLCItem {
+  id: string;
+  title: string;
+  price: number;
+}
+
+export interface Achievement {
+  id: string;
+  title: string;
+  icon: string;
+  unlocked: boolean;
+}
+
+export type RelatedGame = Game & { genreBadge: string };
