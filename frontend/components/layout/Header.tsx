@@ -54,13 +54,13 @@ export function Header() {
 
         <div className="flex items-center gap-3">
           <a
-            href="#"
+            href="/login"
             className="rounded-lg px-4 py-2 text-sm font-medium text-on-surface-variant transition-colors hover:text-on-surface"
           >
             Sign In
           </a>
           <a
-            href="#"
+            href="/register"
             className="rounded-lg bg-gradient-to-br from-primary to-primary-container px-4 py-2 text-sm font-bold text-on-primary transition-opacity hover:opacity-90"
           >
             Sign Up

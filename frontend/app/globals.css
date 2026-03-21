@@ -26,7 +26,7 @@
   --primary: #a1faff;
   --primary-container: #00f4fe;
   --primary-dim: #00e5ee;
-  --on-primary: #006165;
+  --on-primary: #00393b;
   --on-primary-container: #00575b;
   --on-primary-fixed: #004346;
   --inverse-primary: #006a6e;
@@ -118,4 +118,35 @@ body {
 @keyframes ripple {
   0% { transform: scale(1); opacity: 0.6; }
   100% { transform: scale(2.5); opacity: 0; }
+}
+
+.glass-panel {
+  background: rgba(29, 32, 36, 0.7);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(170, 171, 175, 0.15);
+  border-left: 1px solid rgba(170, 171, 175, 0.15);
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-bright) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--surface-container-low);
+  border-radius: 999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--outline-variant);
+  border-radius: 999px;
+  transition: background 0.2s;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dim);
 }

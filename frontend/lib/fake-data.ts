@@ -13,426 +13,234 @@ import {
   type RecentlyViewedGame,
 } from "./types";
 
-export const heroSlides: HeroSlide[] = [
-  {
-    id: "1",
-    title: "CyberStellar 2088",
-    subtitle:
-      "Experience the neon-drenched future of tactical combat in the most anticipated RPG of the decade.",
-    ctaText: "Pre-order Now",
-    ctaLink: "#",
-    price: 59.99,
-    gradientFrom: "#0f2027",
-    gradientTo: "#203a43",
-  },
-  {
-    id: "2",
-    title: "Mythic Origins: Reborn",
-    subtitle:
-      "Descend into a hand-crafted mythological world where every choice reshapes destiny.",
+/* ── helpers ── */
+
+interface RawItem {
+  id: number;
+  name: string;
+  discounted: boolean;
+  discount_percent: number;
+  original_price: number | null;
+  final_price: number;
+  currency: string;
+  large_capsule_image: string;
+  small_capsule_image: string;
+  header_image: string;
+  windows_available: boolean;
+  mac_available: boolean;
+  linux_available: boolean;
+  controller_support?: string;
+  discount_expiration?: number;
+}
+
+interface RawFeaturedData {
+  specials: { items: RawItem[] };
+  top_sellers: { items: RawItem[] };
+  new_releases: { items: RawItem[] };
+  coming_soon: { items: RawItem[] };
+}
+
+export function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+function centsToPrice(cents: number | null): number {
+  if (cents == null || cents === 0) return 0;
+  return cents / 100;
+}
+
+function detectPlatform(_item: RawItem): Platform {
+  return "steam";
+}
+
+function rawToGame(item: RawItem, index: number): Game {
+  const price = centsToPrice(item.final_price);
+  const originalPrice = item.discounted
+    ? centsToPrice(item.original_price)
+    : undefined;
+  const discountPercent = item.discounted ? item.discount_percent : undefined;
+
+  const badges: Game["badges"] = [];
+  if (item.discounted && item.discount_percent > 0) badges.push("discount");
+
+  return {
+    id: `${item.id}-${index}`,
+    title: item.name,
+    slug: slugify(item.name),
+    platform: detectPlatform(item),
+    genres: [],
+    price,
+    originalPrice,
+    discountPercent,
+    badges,
+    image: item.large_capsule_image,
+    headerImage: item.header_image,
+  };
+}
+
+/* ── In-memory cache for featured data ── */
+
+let cachedFeaturedData: RawFeaturedData | null = null;
+
+async function fetchFeaturedData(): Promise<RawFeaturedData> {
+  if (cachedFeaturedData) return cachedFeaturedData;
+  const baseUrl =
+    process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const res = await fetch(`${baseUrl}/api/steam/featured`, {
+    next: { revalidate: 3600 },
+  });
+  cachedFeaturedData = await res.json();
+  return cachedFeaturedData as RawFeaturedData;
+}
+
+/* ── Hero Slides ── */
+
+const heroGradients = [
+  { from: "#0f2027", to: "#203a43" },
+  { from: "#1a0033", to: "#330066" },
+  { from: "#1c1c00", to: "#3a3a00" },
+  { from: "#0a1628", to: "#162844" },
+  { from: "#1a0000", to: "#330011" },
+];
+
+export async function getHeroSlides(): Promise<HeroSlide[]> {
+  const rawData = await fetchFeaturedData();
+  return rawData.specials.items.slice(0, 5).map((item, i) => ({
+    id: String(item.id),
+    title: item.name,
+    subtitle: `Save ${item.discount_percent}% on ${item.name}. Limited time offer — grab your key before the deal expires!`,
     ctaText: "Buy Now",
-    ctaLink: "#",
-    price: 49.99,
-    gradientFrom: "#1a0033",
-    gradientTo: "#330066",
-  },
-  {
-    id: "3",
-    title: "Velocity X-Treme Pro",
-    subtitle:
-      "Push the limits of speed in the most photorealistic racing experience ever made.",
-    ctaText: "Shop Now",
-    ctaLink: "#",
-    price: 39.99,
-    gradientFrom: "#1c1c00",
-    gradientTo: "#3a3a00",
-  },
-];
+    ctaLink: `/games/${slugify(item.name)}`,
+    price: centsToPrice(item.final_price),
+    gradientFrom: heroGradients[i % heroGradients.length].from,
+    gradientTo: heroGradients[i % heroGradients.length].to,
+    image: item.header_image,
+  }));
+}
 
-export const recommendedGames: Game[] = [
-  {
-    id: "r1",
-    title: "Elden Shadow Realm",
-    slug: "elden-shadow-realm",
-    platform: "steam",
-    genres: ["Action", "Open World"],
-    price: 33.99,
-    originalPrice: 39.99,
-    discountPercent: 15,
-    badges: ["discount"],
-  },
-  {
-    id: "r2",
-    title: "Starfield Explorer",
-    slug: "starfield-explorer",
-    platform: "steam",
-    genres: ["Sci-Fi", "RPG"],
-    price: 41.99,
-    originalPrice: 69.99,
-    discountPercent: 40,
-    badges: ["discount"],
-  },
-  {
-    id: "r3",
-    title: "Velocity X-Treme",
-    slug: "velocity-x-treme",
-    platform: "steam",
-    genres: ["Racing", "Sports"],
-    price: 29.99,
-    badges: ["rare"],
-  },
-  {
-    id: "r4",
-    title: "Kingdom Come II",
-    slug: "kingdom-come-ii",
-    platform: "steam",
-    genres: ["Historical", "RPG"],
-    price: 49.99,
-    badges: [],
-  },
-  {
-    id: "r5",
-    title: "Phantom Blade",
-    slug: "phantom-blade",
-    platform: "epic",
-    genres: ["Action", "Stealth"],
-    price: 24.99,
-    originalPrice: 34.99,
-    discountPercent: 29,
-    badges: ["discount"],
-  },
-  {
-    id: "r6",
-    title: "Nova Frontier",
-    slug: "nova-frontier",
-    platform: "steam",
-    genres: ["Strategy", "Sci-Fi"],
-    price: 19.99,
-    badges: ["new"],
-  },
-];
+/* ── Specials → Recommended games ── */
 
-export const bestsellerGames: BestsellerGame[] = [
-  {
-    id: "b1",
-    title: "Strike Team Delta",
-    slug: "strike-team-delta",
-    platform: "steam",
-    genres: ["FPS", "Tactical"],
-    price: 14.5,
-    originalPrice: 19.99,
-    discountPercent: 25,
-    badges: ["discount"],
-    rank: 1,
-  },
-  {
-    id: "b2",
-    title: "Neon Pulse",
-    slug: "neon-pulse",
-    platform: "steam",
-    genres: ["Cyberpunk", "Action"],
-    price: 19.99,
-    badges: ["popular"],
-    rank: 2,
-  },
-  {
-    id: "b3",
-    title: "Mythic Origins",
-    slug: "mythic-origins",
-    platform: "steam",
-    genres: ["RPG", "Fantasy"],
-    price: 9.99,
-    originalPrice: 19.99,
-    discountPercent: 50,
-    badges: ["discount"],
-    rank: 3,
-  },
-];
+export async function getRecommendedGames(): Promise<Game[]> {
+  const rawData = await fetchFeaturedData();
+  return rawData.specials.items.map(rawToGame);
+}
 
-export const newReleases: Game[] = [
-  {
-    id: "n1",
-    title: "Ghost Protocol: Zero",
-    slug: "ghost-protocol-zero",
-    platform: "steam",
-    genres: ["Stealth", "Action"],
-    price: 59.99,
-    badges: ["new"],
-    releasedAgo: "Released 2 days ago",
-  },
-  {
-    id: "n2",
-    title: "Arcade Legends",
-    slug: "arcade-legends",
-    platform: "steam",
-    genres: ["Arcade", "Retro"],
-    price: 12.49,
-    badges: ["new"],
-    releasedAgo: "Released Yesterday",
-  },
-  {
-    id: "n3",
-    title: "Final Hour: Remastered",
-    slug: "final-hour-remastered",
-    platform: "steam",
-    genres: ["FPS", "Remaster"],
-    price: 39.99,
-    badges: ["new"],
-    releasedAgo: "Released Today",
-  },
-];
+/* ── Top Sellers → Bestsellers ── */
 
-export const preOrders: Game[] = [
-  {
-    id: "p1",
-    title: "Beyond The Void",
-    slug: "beyond-the-void",
-    platform: "steam",
-    genres: ["Sci-Fi", "Adventure"],
-    price: 69.99,
-    badges: ["pre-order"],
-    timeLeft: "12 Days Left",
-  },
-  {
-    id: "p2",
-    title: "Kingdoms of Dust",
-    slug: "kingdoms-of-dust",
-    platform: "steam",
-    genres: ["Strategy", "Medieval"],
-    price: 44.99,
-    badges: ["pre-order"],
-    timeLeft: "3 Weeks Left",
-  },
-  {
-    id: "p3",
-    title: "Silent Strike",
-    slug: "silent-strike",
-    platform: "steam",
-    genres: ["Stealth", "Thriller"],
-    price: 59.99,
-    badges: ["pre-order"],
-    timeLeft: "Coming Q4",
-  },
-];
+export async function getBestsellerGames(): Promise<BestsellerGame[]> {
+  const rawData = await fetchFeaturedData();
+  return rawData.top_sellers.items
+    .slice(0, 10)
+    .map((item, i) => ({ ...rawToGame(item, i), rank: i + 1 }))
+    .filter((game) => game.price < 150)
+    .slice(0, 5);
+}
 
-export const dealTiers: DealTier[] = [
-  {
-    label: "Under €5",
-    maxPrice: 5,
-    games: [
-      {
-        id: "d1",
-        title: "Shadow Runner",
-        slug: "shadow-runner",
-        platform: "steam",
-        genres: ["Platformer"],
-        price: 1.99,
-        originalPrice: 14.99,
-        discountPercent: 87,
-        badges: ["discount"],
-      },
-      {
-        id: "d2",
-        title: "Pixel Rogue",
-        slug: "pixel-rogue",
-        platform: "steam",
-        genres: ["Roguelike"],
-        price: 0.89,
-        originalPrice: 9.99,
-        discountPercent: 91,
-        badges: ["discount"],
-      },
-      {
-        id: "d3",
-        title: "Lofi Odyssey",
-        slug: "lofi-odyssey",
-        platform: "steam",
-        genres: ["Adventure"],
-        price: 4.5,
-        originalPrice: 19.0,
-        discountPercent: 76,
-        badges: ["discount"],
-      },
-      {
-        id: "d4",
-        title: "Deep Sea Survival",
-        slug: "deep-sea-survival",
-        platform: "steam",
-        genres: ["Survival"],
-        price: 3.99,
-        originalPrice: 15.99,
-        discountPercent: 75,
-        badges: ["discount"],
-      },
-      {
-        id: "d5",
-        title: "Neon Blast",
-        slug: "neon-blast",
-        platform: "steam",
-        genres: ["Shooter"],
-        price: 2.15,
-        originalPrice: 12.99,
-        discountPercent: 83,
-        badges: ["discount"],
-      },
-      {
-        id: "d6",
-        title: "Cyber Heist",
-        slug: "cyber-heist",
-        platform: "steam",
-        genres: ["Action"],
-        price: 4.99,
-        originalPrice: 24.99,
-        discountPercent: 80,
-        badges: ["discount"],
-      },
-    ],
-  },
-  {
-    label: "Under €10",
-    maxPrice: 10,
-    games: [
-      {
-        id: "d7",
-        title: "Galactic Trader",
-        slug: "galactic-trader",
-        platform: "steam",
-        genres: ["Simulation"],
-        price: 7.99,
-        originalPrice: 29.99,
-        discountPercent: 73,
-        badges: ["discount"],
-      },
-      {
-        id: "d8",
-        title: "Frost Kingdom",
-        slug: "frost-kingdom",
-        platform: "epic",
-        genres: ["Strategy"],
-        price: 5.49,
-        originalPrice: 19.99,
-        discountPercent: 73,
-        badges: ["discount"],
-      },
-      {
-        id: "d9",
-        title: "Turbo Drift",
-        slug: "turbo-drift",
-        platform: "steam",
-        genres: ["Racing"],
-        price: 8.99,
-        originalPrice: 24.99,
-        discountPercent: 64,
-        badges: ["discount"],
-      },
-      {
-        id: "d10",
-        title: "Rune Warriors",
-        slug: "rune-warriors",
-        platform: "steam",
-        genres: ["RPG"],
-        price: 6.49,
-        originalPrice: 19.99,
-        discountPercent: 68,
-        badges: ["discount"],
-      },
-      {
-        id: "d11",
-        title: "Colony Craft",
-        slug: "colony-craft",
-        platform: "steam",
-        genres: ["Sandbox"],
-        price: 9.99,
-        originalPrice: 34.99,
-        discountPercent: 71,
-        badges: ["discount"],
-      },
-      {
-        id: "d12",
-        title: "Dungeon Depths",
-        slug: "dungeon-depths",
-        platform: "steam",
-        genres: ["Roguelike"],
-        price: 7.49,
-        originalPrice: 22.99,
-        discountPercent: 67,
-        badges: ["discount"],
-      },
-    ],
-  },
-  {
-    label: "Under €20",
-    maxPrice: 20,
-    games: [
-      {
-        id: "d13",
-        title: "Warlords Saga",
-        slug: "warlords-saga",
-        platform: "steam",
-        genres: ["Strategy"],
-        price: 14.99,
-        originalPrice: 49.99,
-        discountPercent: 70,
-        badges: ["discount"],
-      },
-      {
-        id: "d14",
-        title: "Phantom Coast",
-        slug: "phantom-coast",
-        platform: "steam",
-        genres: ["Adventure"],
-        price: 11.99,
-        originalPrice: 39.99,
-        discountPercent: 70,
-        badges: ["discount"],
-      },
-      {
-        id: "d15",
-        title: "Apex Zero",
-        slug: "apex-zero",
-        platform: "playstation",
-        genres: ["Shooter"],
-        price: 17.99,
-        originalPrice: 59.99,
-        discountPercent: 70,
-        badges: ["discount"],
-      },
-      {
-        id: "d16",
-        title: "Terra Nova",
-        slug: "terra-nova",
-        platform: "steam",
-        genres: ["Survival"],
-        price: 12.49,
-        originalPrice: 44.99,
-        discountPercent: 72,
-        badges: ["discount"],
-      },
-      {
-        id: "d17",
-        title: "Mech Command",
-        slug: "mech-command",
-        platform: "steam",
-        genres: ["Action"],
-        price: 15.99,
-        originalPrice: 39.99,
-        discountPercent: 60,
-        badges: ["discount"],
-      },
-      {
-        id: "d18",
-        title: "Star Drift",
-        slug: "star-drift",
-        platform: "epic",
-        genres: ["Sci-Fi"],
-        price: 18.99,
-        originalPrice: 54.99,
-        discountPercent: 65,
-        badges: ["discount"],
-      },
-    ],
-  },
-];
+/* ── New Releases ── */
+
+export async function getNewReleases(): Promise<Game[]> {
+  const rawData = await fetchFeaturedData();
+  return rawData.new_releases.items.slice(0, 6).map((item, i) => ({
+    ...rawToGame(item, i),
+    badges: ["new" as const],
+    releasedAgo: "Just Released",
+  }));
+}
+
+/* ── Coming Soon → Pre-orders ── */
+
+export async function getPreOrders(): Promise<Game[]> {
+  const rawData = await fetchFeaturedData();
+  return rawData.coming_soon.items.slice(0, 6).map((item, i) => ({
+    ...rawToGame(item, i),
+    badges: ["pre-order" as const],
+    timeLeft: item.discount_expiration
+      ? `${Math.max(1, Math.ceil((item.discount_expiration * 1000 - Date.now()) / 86400000))} Days Left`
+      : "Coming Soon",
+  }));
+}
+
+/* ── Budget Deals ── */
+
+function buildDealTier(
+  label: string,
+  maxCents: number,
+  items: RawItem[]
+): DealTier {
+  return {
+    label,
+    maxPrice: maxCents / 100,
+    games: items
+      .filter(
+        (it) => it.final_price > 0 && it.final_price <= maxCents && it.discounted
+      )
+      .slice(0, 6)
+      .map((it, i) => ({ ...rawToGame(it, i), badges: ["discount" as const] })),
+  };
+}
+
+export async function getDealTiers(): Promise<DealTier[]> {
+  const rawData = await fetchFeaturedData();
+  const allDiscountedItems = [
+    ...rawData.specials.items,
+    ...rawData.new_releases.items,
+    ...rawData.top_sellers.items,
+  ].filter((it) => it.discounted && it.final_price > 0);
+  return [
+    buildDealTier("Under $5", 500, allDiscountedItems),
+    buildDealTier("Under $10", 1000, allDiscountedItems),
+    buildDealTier("Under $20", 2000, allDiscountedItems),
+    buildDealTier("Under $50", 5000, allDiscountedItems),
+  ];
+}
+
+/* ── Catalog ── */
+
+export async function getCatalogGames(): Promise<Game[]> {
+  const rawData = await fetchFeaturedData();
+  const allRawItems = [
+    ...rawData.specials.items,
+    ...rawData.top_sellers.items,
+    ...rawData.new_releases.items,
+    ...rawData.coming_soon.items,
+  ];
+  const seenIds = new Set<number>();
+  return allRawItems
+    .filter((it) => {
+      if (seenIds.has(it.id)) return false;
+      seenIds.add(it.id);
+      return true;
+    })
+    .map(rawToGame);
+}
+
+/* ── Look up a game by slug ── */
+
+export async function getGameBySlug(
+  slug: string
+): Promise<{ game: Game; steamAppId: number } | undefined> {
+  const rawData = await fetchFeaturedData();
+  const allRawItems = [
+    ...rawData.specials.items,
+    ...rawData.top_sellers.items,
+    ...rawData.new_releases.items,
+    ...rawData.coming_soon.items,
+  ];
+  const seenIds = new Set<number>();
+  const unique = allRawItems.filter((it) => {
+    if (seenIds.has(it.id)) return false;
+    seenIds.add(it.id);
+    return true;
+  });
+  const found = unique.find((it) => slugify(it.name) === slug);
+  if (!found) return undefined;
+  return { game: rawToGame(found, 0), steamAppId: found.id };
+}
+
+/* ── Genres / UI constants (static) ── */
 
 export const genres = [
   "All Genres",
@@ -472,331 +280,7 @@ export const allGenres: string[] = [
   "Fighting",
 ];
 
-export const catalogGames: Game[] = [
-  {
-    id: "c1",
-    title: "Neural Reckoning: 2099",
-    slug: "neural-reckoning-2099",
-    platform: "steam",
-    genres: ["Action", "RPG"],
-    price: 14.99,
-    originalPrice: 59.99,
-    discountPercent: 75,
-    badges: ["discount", "rare"],
-  },
-  {
-    id: "c2",
-    title: "Void Walker: Eclipse",
-    slug: "void-walker-eclipse",
-    platform: "epic",
-    genres: ["Adventure", "Action"],
-    price: 23.99,
-    originalPrice: 39.99,
-    discountPercent: 40,
-    badges: ["discount"],
-  },
-  {
-    id: "c3",
-    title: "Neon Velocity",
-    slug: "neon-velocity",
-    platform: "steam",
-    genres: ["Racing", "Sports"],
-    price: 19.99,
-    badges: [],
-  },
-  {
-    id: "c4",
-    title: "Bit-Shift Chronicles",
-    slug: "bit-shift-chronicles",
-    platform: "steam",
-    genres: ["RPG", "Indie"],
-    price: 5.99,
-    originalPrice: 29.99,
-    discountPercent: 80,
-    badges: ["discount"],
-  },
-  {
-    id: "c5",
-    title: "Starfield Explorer",
-    slug: "starfield-explorer",
-    platform: "steam",
-    genres: ["RPG", "Adventure"],
-    price: 41.99,
-    originalPrice: 69.99,
-    discountPercent: 40,
-    badges: ["discount"],
-  },
-  {
-    id: "c6",
-    title: "Phantom Blade Zero",
-    slug: "phantom-blade-zero",
-    platform: "playstation",
-    genres: ["Action", "Fighting"],
-    price: 59.99,
-    badges: ["new"],
-    releaseDate: "2026-03-15",
-  },
-  {
-    id: "c7",
-    title: "Frost Kingdom",
-    slug: "frost-kingdom",
-    platform: "epic",
-    genres: ["Strategy", "Survival"],
-    price: 5.49,
-    originalPrice: 19.99,
-    discountPercent: 73,
-    badges: ["discount"],
-  },
-  {
-    id: "c8",
-    title: "Shadow Runner",
-    slug: "shadow-runner",
-    platform: "steam",
-    genres: ["Platformer", "Indie"],
-    price: 1.99,
-    originalPrice: 14.99,
-    discountPercent: 87,
-    badges: ["discount"],
-  },
-  {
-    id: "c9",
-    title: "Galactic Trader",
-    slug: "galactic-trader",
-    platform: "steam",
-    genres: ["Simulation", "Strategy"],
-    price: 7.99,
-    originalPrice: 29.99,
-    discountPercent: 73,
-    badges: ["discount"],
-  },
-  {
-    id: "c10",
-    title: "Warlords Saga",
-    slug: "warlords-saga",
-    platform: "steam",
-    genres: ["Strategy", "RPG"],
-    price: 14.99,
-    originalPrice: 49.99,
-    discountPercent: 70,
-    badges: ["discount"],
-  },
-  {
-    id: "c11",
-    title: "Apex Zero",
-    slug: "apex-zero",
-    platform: "playstation",
-    genres: ["Shooter", "Action"],
-    price: 17.99,
-    originalPrice: 59.99,
-    discountPercent: 70,
-    badges: ["discount"],
-  },
-  {
-    id: "c12",
-    title: "Terra Nova",
-    slug: "terra-nova",
-    platform: "xbox",
-    genres: ["Survival", "Adventure"],
-    price: 12.49,
-    originalPrice: 44.99,
-    discountPercent: 72,
-    badges: ["discount"],
-  },
-  {
-    id: "c13",
-    title: "Mech Command",
-    slug: "mech-command",
-    platform: "steam",
-    genres: ["Action", "Strategy"],
-    price: 15.99,
-    originalPrice: 39.99,
-    discountPercent: 60,
-    badges: ["discount"],
-  },
-  {
-    id: "c14",
-    title: "Ghost Protocol: Zero",
-    slug: "ghost-protocol-zero",
-    platform: "steam",
-    genres: ["Action", "Shooter"],
-    price: 59.99,
-    badges: ["new"],
-    releaseDate: "2026-03-18",
-  },
-  {
-    id: "c15",
-    title: "Neon Pulse",
-    slug: "neon-pulse",
-    platform: "steam",
-    genres: ["Action", "Indie"],
-    price: 19.99,
-    badges: ["popular"],
-  },
-  {
-    id: "c16",
-    title: "Turbo Drift",
-    slug: "turbo-drift",
-    platform: "switch",
-    genres: ["Racing", "Sports"],
-    price: 8.99,
-    originalPrice: 24.99,
-    discountPercent: 64,
-    badges: ["discount"],
-  },
-  {
-    id: "c17",
-    title: "Rune Warriors",
-    slug: "rune-warriors",
-    platform: "xbox",
-    genres: ["RPG", "Action"],
-    price: 6.49,
-    originalPrice: 19.99,
-    discountPercent: 68,
-    badges: ["discount"],
-  },
-  {
-    id: "c18",
-    title: "Colony Craft",
-    slug: "colony-craft",
-    platform: "steam",
-    genres: ["Sandbox", "Survival"],
-    price: 9.99,
-    originalPrice: 34.99,
-    discountPercent: 71,
-    badges: ["discount"],
-  },
-  {
-    id: "c19",
-    title: "Dungeon Depths",
-    slug: "dungeon-depths",
-    platform: "steam",
-    genres: ["RPG", "Indie"],
-    price: 7.49,
-    originalPrice: 22.99,
-    discountPercent: 67,
-    badges: ["discount"],
-  },
-  {
-    id: "c20",
-    title: "Beyond The Void",
-    slug: "beyond-the-void",
-    platform: "playstation",
-    genres: ["Adventure", "Horror"],
-    price: 69.99,
-    badges: ["pre-order"],
-    timeLeft: "12 Days Left",
-  },
-  {
-    id: "c21",
-    title: "Kingdoms of Dust",
-    slug: "kingdoms-of-dust",
-    platform: "switch",
-    genres: ["Strategy", "RPG"],
-    price: 44.99,
-    badges: ["pre-order"],
-    timeLeft: "3 Weeks Left",
-  },
-  {
-    id: "c22",
-    title: "Pixel Rogue",
-    slug: "pixel-rogue",
-    platform: "steam",
-    genres: ["Indie", "Platformer"],
-    price: 0.89,
-    originalPrice: 9.99,
-    discountPercent: 91,
-    badges: ["discount"],
-  },
-  {
-    id: "c23",
-    title: "Lofi Odyssey",
-    slug: "lofi-odyssey",
-    platform: "steam",
-    genres: ["Adventure", "Puzzle"],
-    price: 4.5,
-    originalPrice: 19.0,
-    discountPercent: 76,
-    badges: ["discount"],
-  },
-  {
-    id: "c24",
-    title: "Deep Sea Survival",
-    slug: "deep-sea-survival",
-    platform: "epic",
-    genres: ["Survival", "Horror"],
-    price: 3.99,
-    originalPrice: 15.99,
-    discountPercent: 75,
-    badges: ["discount"],
-  },
-  {
-    id: "c25",
-    title: "Star Drift",
-    slug: "star-drift",
-    platform: "epic",
-    genres: ["Simulation", "Indie"],
-    price: 18.99,
-    originalPrice: 54.99,
-    discountPercent: 65,
-    badges: ["discount"],
-  },
-  {
-    id: "c26",
-    title: "Strike Team Delta",
-    slug: "strike-team-delta",
-    platform: "xbox",
-    genres: ["Shooter", "Action"],
-    price: 14.5,
-    originalPrice: 19.99,
-    discountPercent: 25,
-    badges: ["discount", "popular"],
-  },
-  {
-    id: "c27",
-    title: "Cyber Heist",
-    slug: "cyber-heist",
-    platform: "steam",
-    genres: ["Action", "Indie"],
-    price: 4.99,
-    originalPrice: 24.99,
-    discountPercent: 80,
-    badges: ["discount"],
-  },
-  {
-    id: "c28",
-    title: "Phantom Coast",
-    slug: "phantom-coast",
-    platform: "switch",
-    genres: ["Adventure", "Puzzle"],
-    price: 11.99,
-    originalPrice: 39.99,
-    discountPercent: 70,
-    badges: ["discount"],
-  },
-  {
-    id: "c29",
-    title: "Neon Blast",
-    slug: "neon-blast",
-    platform: "steam",
-    genres: ["Shooter", "Action"],
-    price: 2.15,
-    originalPrice: 12.99,
-    discountPercent: 83,
-    badges: ["discount"],
-  },
-  {
-    id: "c30",
-    title: "Arcade Legends",
-    slug: "arcade-legends",
-    platform: "switch",
-    genres: ["Indie", "Platformer"],
-    price: 12.49,
-    badges: ["new"],
-    releaseDate: "2026-03-19",
-  },
-];
-
-/* ── Product Detail Page: Cyber Stellar 2088 ── */
+/* ── Product Detail: static placeholder data ── */
 
 export const cyberStellarDetail: GameDetail = {
   id: "pd1",
@@ -843,26 +327,10 @@ export const cyberStellarDetail: GameDetail = {
 };
 
 export const deluxePerks: DeluxePerk[] = [
-  {
-    icon: "confirmation_number",
-    title: "Season Pass",
-    description: "Access to all three upcoming story expansions.",
-  },
-  {
-    icon: "shield",
-    title: "Onyx Armor Set",
-    description: "Exclusive high-spec tactical gear for early game.",
-  },
-  {
-    icon: "music_note",
-    title: "Hi-Res Soundtrack",
-    description: "45 tracks of heavy synth-wave excellence.",
-  },
-  {
-    icon: "photo_camera",
-    title: "Artbook PDF",
-    description: "200 pages of concept art and world-building.",
-  },
+  { icon: "confirmation_number", title: "Season Pass", description: "Access to all three upcoming story expansions." },
+  { icon: "shield", title: "Onyx Armor Set", description: "Exclusive high-spec tactical gear for early game." },
+  { icon: "music_note", title: "Hi-Res Soundtrack", description: "45 tracks of heavy synth-wave excellence." },
+  { icon: "photo_camera", title: "Artbook PDF", description: "200 pages of concept art and world-building." },
 ];
 
 export const dlcItems: DLCItem[] = [
@@ -883,121 +351,48 @@ export const achievements: Achievement[] = [
   { id: "a10", title: "Endgame", icon: "emoji_events", unlocked: true },
 ];
 
-export const relatedGames: RelatedGame[] = [
-  {
-    id: "rg1",
-    title: "Neural Void: Syndicate",
-    slug: "neural-void-syndicate",
-    platform: "steam",
-    genres: ["RPG"],
-    price: 30.99,
-    badges: [],
-    genreBadge: "RPG",
-  },
-  {
-    id: "rg2",
-    title: "Digital Ghost: Protocols",
-    slug: "digital-ghost-protocols",
-    platform: "steam",
-    genres: ["Hacking", "Stealth"],
-    price: 19.99,
-    badges: [],
-    genreBadge: "HACKING",
-  },
-  {
-    id: "rg3",
-    title: "Orbital Drift",
-    slug: "orbital-drift",
-    platform: "steam",
-    genres: ["Racing"],
-    price: 54.99,
-    badges: [],
-    genreBadge: "RACING",
-  },
-  {
-    id: "rg4",
-    title: "The Monolith Files",
-    slug: "the-monolith-files",
-    platform: "steam",
-    genres: ["Adventure"],
-    price: 24.99,
-    badges: [],
-    genreBadge: "ADVENTURE",
-  },
-];
-
-/* ── Search Results Page ── */
-
-export const searchResultGames: SearchResultGame[] = [
-  {
-    id: "sr1",
-    title: "Cyberpunk 2077",
-    slug: "cyberpunk-2077",
-    platforms: ["PC", "PS5"],
-    price: 29.99,
-    originalPrice: 59.99,
-    discountPercent: 50,
-    badge: "ultimate-edition",
-  },
-  {
-    id: "sr2",
-    title: "Phantom Liberty",
-    slug: "phantom-liberty",
-    platforms: ["PC"],
-    price: 25.49,
-    badge: "standard",
-  },
-  {
-    id: "sr3",
-    title: "Void Runner",
-    slug: "void-runner",
-    platforms: ["XBOX"],
-    price: 44.99,
-    originalPrice: 89.99,
-    discountPercent: 50,
-    badge: "legendary-bundle",
-  },
-  {
-    id: "sr4",
-    title: "Neural Link VR",
-    slug: "neural-link-vr",
-    platforms: ["STEAM DECK"],
-    price: 19.0,
-  },
-];
+/* ── Search / Recently Viewed ── */
 
 export const popularSearches: string[] = [
   "ELDEN RING",
-  "FC 24",
-  "STEAM DECK",
-  "HORROR GAMES",
-  "GTAVI",
-  "COSMETIC SKINS",
+  "Cyberpunk 2077",
+  "Baldur's Gate 3",
+  "Red Dead Redemption 2",
+  "Crimson Desert",
+  "Slay the Spire 2",
 ];
 
-export const recentlyViewedGames: RecentlyViewedGame[] = [
-  {
-    id: "rv1",
-    title: "Elden Ring: Shadow of the Erdtree",
-    label: "PRE-ORDER",
-    price: 39.99,
-  },
-  {
-    id: "rv2",
-    title: "Modern Warfare III",
-    label: "BUNDLE",
-    price: 69.99,
-  },
-  {
-    id: "rv3",
-    title: "Forza Motorsport",
-    label: "PREMIUM",
-    price: 89.99,
-  },
-  {
-    id: "rv4",
-    title: "Hollow Knight",
-    label: "DIGITAL CODE",
-    price: 14.99,
-  },
-];
+export async function getSearchResultGames(): Promise<SearchResultGame[]> {
+  const rawData = await fetchFeaturedData();
+  return rawData.top_sellers.items.slice(0, 4).map((item) => ({
+    id: String(item.id),
+    title: item.name,
+    slug: slugify(item.name),
+    platforms: [
+      item.windows_available ? "PC" : "",
+      item.mac_available ? "Mac" : "",
+      item.linux_available ? "Linux" : "",
+    ].filter(Boolean),
+    price: centsToPrice(item.final_price),
+    originalPrice: item.discounted ? centsToPrice(item.original_price) : undefined,
+    discountPercent: item.discounted ? item.discount_percent : undefined,
+  }));
+}
+
+export async function getRecentlyViewedGames(): Promise<RecentlyViewedGame[]> {
+  const rawData = await fetchFeaturedData();
+  return rawData.specials.items.slice(0, 4).map((item) => ({
+    id: String(item.id),
+    title: item.name,
+    label: item.discounted ? `${item.discount_percent}% OFF` : "FULL PRICE",
+    price: centsToPrice(item.final_price),
+  }));
+}
+
+export async function getRelatedGames(): Promise<RelatedGame[]> {
+  const rawData = await fetchFeaturedData();
+  return rawData.specials.items.slice(0, 4).map((item, i) => ({
+    ...rawToGame(item, i),
+    genreBadge: ["RPG", "ACTION", "SHOOTER", "ADVENTURE"][i % 4],
+  }));
+}

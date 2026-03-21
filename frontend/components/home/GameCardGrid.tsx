@@ -28,7 +28,7 @@ export function GameCardGrid({
             )}
           </div>
         </div>
-        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none">
+        <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
           {games.map((game) => (
             <GameCard key={game.id} game={game} />
           ))}

@@ -32,7 +32,7 @@ export function CatalogClient({ games, platforms, genres }: CatalogClientProps) 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const filtered = useMemo(() => {
-    let result = games.filter((game) => {
+    const result = games.filter((game) => {
       if (filters.platforms.length > 0 && !filters.platforms.includes(game.platform))
         return false;
       if (filters.genres.length > 0 && !game.genres.some((g) => filters.genres.includes(g)))

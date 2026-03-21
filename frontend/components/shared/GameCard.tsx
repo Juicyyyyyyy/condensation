@@ -1,4 +1,5 @@
 import type { Game } from "@/lib/types";
+import { formatPrice } from "@/lib/format-price";
 import { Badge } from "./Badge";
 import { PlatformBadge } from "./PlatformBadge";
 
@@ -14,11 +15,16 @@ export function GameCard({
 
   return (
     <a
-      href="#"
+      href={`/games/${game.slug}`}
       className={`group flex shrink-0 flex-col gap-2 rounded-lg bg-surface-container-high p-3 transition-colors hover:bg-surface-bright ${className ?? "w-[200px]"}`}
     >
       <div className="relative aspect-[3/4] w-full overflow-hidden rounded">
-        <div className="h-full w-full bg-gradient-to-br from-surface-container-highest via-surface-bright to-surface-container" />
+        {game.image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={game.image} alt={game.title} className="h-full w-full object-cover" />
+        ) : (
+          <div className="h-full w-full bg-gradient-to-br from-surface-container-highest via-surface-bright to-surface-container" />
+        )}
         {hasDiscount && (
           <div className="absolute top-2 left-2">
             <Badge type="discount">-{game.discountPercent}%</Badge>
@@ -53,11 +59,11 @@ export function GameCard({
         <div className="flex items-baseline gap-1.5">
           {hasDiscount && game.originalPrice != null && (
             <span className="text-xs text-on-surface-variant line-through">
-              €{game.originalPrice.toFixed(2)}
+              {formatPrice(game.originalPrice)}
             </span>
           )}
           <span className="text-sm font-bold text-on-surface">
-            €{game.price.toFixed(2)}
+            {formatPrice(game.price)}
           </span>
         </div>
         <button
