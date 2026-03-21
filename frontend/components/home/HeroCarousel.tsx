@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { HeroSlide } from "@/lib/types";
+import { formatPrice } from "@/lib/format-price";
 
 export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
   const [current, setCurrent] = useState(0);
@@ -18,9 +19,9 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
   const slide = slides[current];
 
   return (
-    <section className="relative overflow-hidden">
+    <section className="relative overflow-hidden h-[60vh]">
       <div
-        className="relative flex min-h-[520px] items-center transition-colors duration-700"
+        className="relative flex h-full items-center transition-colors duration-700"
         style={{
           background: `linear-gradient(135deg, ${slide.gradientFrom} 0%, ${slide.gradientTo} 50%, #0c0e11 100%)`,
         }}
@@ -50,20 +51,29 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
             <div className="flex items-center gap-4">
               <span className="text-sm text-on-surface-variant">Starting at</span>
               <span className="font-headline text-2xl font-bold text-on-surface">
-                €{slide.price.toFixed(2)}
+                {formatPrice(slide.price)}
               </span>
             </div>
 
             <a
               href={slide.ctaLink}
-              className="inline-block rounded-xl bg-gradient-to-br from-primary to-primary-container px-8 py-3.5 font-headline text-sm font-bold text-on-primary-fixed transition-opacity hover:opacity-90"
+              className="inline-block rounded-xl bg-gradient-to-br from-primary to-primary-container px-8 py-3.5 font-headline text-sm font-bold text-on-primary transition-opacity hover:opacity-90"
             >
               {slide.ctaText}
             </a>
           </div>
 
           <div className="hidden w-[400px] lg:block">
-            <div className="aspect-[3/4] rounded-2xl bg-gradient-to-br from-surface-container-highest via-surface-bright to-surface-container opacity-60" />
+            {slide.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={slide.image}
+                alt={slide.title}
+                className="aspect-[16/9] w-full rounded-2xl object-cover opacity-80"
+              />
+            ) : (
+              <div className="aspect-[3/4] rounded-2xl bg-gradient-to-br from-surface-container-highest via-surface-bright to-surface-container opacity-60" />
+            )}
           </div>
         </div>
       </div>
