@@ -5,107 +5,32 @@ import type { GameDetail } from "@/lib/types";
 
 export function GameInfoSidebar({ game }: { game: GameDetail }) {
   const [reqTab, setReqTab] = useState<"minimum" | "recommended">("minimum");
-  const reqs = game.systemRequirements[reqTab];
+  const reqs = game.pc_requirements[reqTab] || "No requirements provided.";
+  const languageRows = game.supported_languages
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .slice(0, 8);
 
   return (
-    <aside className="space-y-6">
-      {/* Free Demo Banner */}
-      <div className="rounded-xl bg-surface-container-high p-5">
-        <div className="mb-2 flex items-center gap-2">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            className="text-tertiary"
-          >
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" x2="12" y1="15" y2="3" />
-          </svg>
-          <span className="text-xs font-bold uppercase tracking-wider text-tertiary">
-            Free Demo Available
-          </span>
-        </div>
-        <p className="mb-3 text-[11px] leading-relaxed text-on-surface-variant">
-          Experience the first hour of Stellaris. Progress carries over to the
-          full game.
-        </p>
-        <button className="w-full rounded-lg bg-tertiary-container py-2.5 text-xs font-bold uppercase tracking-wider text-on-tertiary-container transition-opacity hover:opacity-90">
-          Download Demo
-        </button>
-      </div>
-
-      {/* Game Metadata */}
-      <div className="space-y-3 text-xs">
-        <div className="flex justify-between">
-          <span className="text-on-surface-variant">Developer</span>
-          <span className="font-medium text-on-surface">{game.developer}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-on-surface-variant">Publisher</span>
-          <span className="font-medium text-on-surface">{game.publisher}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-on-surface-variant">Release Date</span>
-          <span className="font-medium text-on-surface">
-            {game.releaseDate}
-          </span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-on-surface-variant">Genre</span>
-          <span className="font-medium text-on-surface">
-            {game.genres.join(", ")}
-          </span>
-        </div>
-      </div>
-
-      {/* Feature Tags */}
-      <div>
-        <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant">
-          Features
-        </p>
-        <div className="flex flex-wrap gap-1.5">
-          {game.features.map((f) => (
-            <span
-              key={f}
-              className="rounded-md bg-surface-container-highest px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant"
-            >
-              {f}
-            </span>
-          ))}
-        </div>
-      </div>
-
+    <>
       {/* Languages */}
-      <div>
-        <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant">
+      <div className="mb-6">
+        <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-on-surface-variant">
           Supported Languages
         </p>
-        <table className="w-full text-[11px]">
+        <table className="w-full text-sm">
           <thead>
             <tr className="text-on-surface-variant">
               <th className="pb-1.5 text-left font-normal">Languages</th>
-              <th className="pb-1.5 text-center font-normal">Interface</th>
-              <th className="pb-1.5 text-center font-normal">Audio</th>
-              <th className="pb-1.5 text-center font-normal">Subtitles</th>
+              <th className="pb-1.5 text-center font-normal">Support</th>
             </tr>
           </thead>
           <tbody>
-            {game.languages.map((lang) => (
-              <tr key={lang.language}>
-                <td className="py-1 text-on-surface">{lang.language}</td>
-                <td className="py-1 text-center text-primary">
-                  {lang.interface ? "✓" : "—"}
-                </td>
-                <td className="py-1 text-center text-primary">
-                  {lang.audio ? "✓" : "—"}
-                </td>
-                <td className="py-1 text-center text-primary">
-                  {lang.subtitles ? "✓" : "—"}
-                </td>
+            {languageRows.map((lang) => (
+              <tr key={lang}>
+                <td className="py-1 text-on-surface">{lang.replace(/\*/g, "")}</td>
+                <td className="py-1 text-center text-primary">{lang.includes("*") ? "Full Audio" : "UI/Sub"}</td>
               </tr>
             ))}
           </tbody>
@@ -114,7 +39,7 @@ export function GameInfoSidebar({ game }: { game: GameDetail }) {
 
       {/* System Requirements */}
       <div>
-        <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant">
+        <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-on-surface-variant">
           System Requirements
         </p>
         <div className="mb-3 flex gap-1 rounded-lg bg-surface-container p-1">
@@ -132,19 +57,14 @@ export function GameInfoSidebar({ game }: { game: GameDetail }) {
             </button>
           ))}
         </div>
-        <div className="space-y-2 text-[11px]">
-          {(
-            Object.entries(reqs) as [string, string][]
-          ).map(([key, value]) => (
-            <div key={key} className="flex justify-between gap-4">
-              <span className="shrink-0 capitalize text-on-surface-variant">
-                {key}
-              </span>
-              <span className="text-right font-medium text-on-surface">
-                {value}
-              </span>
-            </div>
-          ))}
+        <div
+          className="space-y-2 text-sm text-on-surface-variant"
+          dangerouslySetInnerHTML={{ __html: reqs }}
+        />
+        <div className="pt-1 text-[10px] text-on-surface-variant">
+          {game.platforms.windows ? "Windows " : ""}
+          {game.platforms.mac ? "Mac " : ""}
+          {game.platforms.linux ? "Linux" : ""}
         </div>
       </div>
 
@@ -188,6 +108,6 @@ export function GameInfoSidebar({ game }: { game: GameDetail }) {
           </button>
         ))}
       </div>
-    </aside>
+    </>
   );
 }

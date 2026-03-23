@@ -1,21 +1,26 @@
 import type { Metadata } from "next";
+
+export const dynamic = "force-dynamic";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { CatalogClient } from "@/components/catalog/CatalogClient";
-import { catalogGames, allPlatforms, allGenres } from "@/lib/fake-data";
+import { getCatalogGames, allPlatforms, allGenres } from "@/lib/fake-data";
 
 export const metadata: Metadata = {
   title: "Catalog — Condensation",
-  description: "Browse thousands of game keys at the best prices. Filter by platform, genre, and price.",
+  description:
+    "Browse thousands of game keys at the best prices. Filter by platform, genre, and price.",
 };
 
-export default function CatalogPage() {
+export default async function CatalogPage() {
+  const games = await getCatalogGames();
+
   return (
     <>
       <Header />
       <main>
         <CatalogClient
-          games={catalogGames}
+          games={games}
           platforms={allPlatforms}
           genres={allGenres}
         />

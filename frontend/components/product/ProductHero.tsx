@@ -1,44 +1,48 @@
 "use client";
 
-import { useState } from "react";
 import type { GameDetail } from "@/lib/types";
 
 export function ProductHero({ game }: { game: GameDetail }) {
-  const [selectedEdition, setSelectedEdition] = useState<"standard" | "deluxe">(
-    "standard"
-  );
-
-  const thumbnails = Array.from({ length: 8 }, (_, i) => i);
+  const thumbnails = game.screenshots.slice(0, 8);
+  const finalPrice = (game.price_overview.final ?? 0) / 100;
+  const ageText = String(game.required_age || "E");
+  const genreText =
+    game.genres.length > 0
+      ? game.genres.map((genre) => genre.description).join(" · ")
+      : "N/A";
+  const genreMetaText = game.genres.map((genre) => genre.description).join(", ");
+  const categoryText = game.categories.map((category) => category.description).join(", ");
 
   return (
-    <section className="mx-auto grid max-w-7xl gap-8 px-6 py-6 lg:grid-cols-[1fr_400px]">
+    <section className="mx-auto flex max-w-7xl gap-8 mb-6">
       {/* Left — Media */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 w-2/3">
         <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl bg-gradient-to-br from-[#0a2a3a] via-[#0f3040] to-[#162530]">
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="h-3/4 w-1/2 rounded-lg bg-gradient-to-b from-primary/20 via-secondary/10 to-transparent" />
+            <img
+              src={thumbnails[0]?.path_full || game.image}
+              alt={game.title}
+              className="h-full w-full object-cover"
+            />
           </div>
           <div className="absolute bottom-4 left-4 right-4 h-1 rounded-full bg-gradient-to-r from-primary/60 to-transparent" />
         </div>
 
         {/* Thumbnails */}
         <div className="flex gap-2 overflow-x-auto pb-1">
-          {thumbnails.map((i) => (
+          {thumbnails.map((shot, i) => (
             <button
-              key={i}
+              key={shot.id}
               className={`aspect-video h-14 shrink-0 overflow-hidden rounded-md transition-all ${
                 i === 0
                   ? "ring-2 ring-primary"
                   : "opacity-60 hover:opacity-100"
               }`}
             >
-              <div
-                className="h-full w-full"
-                style={{
-                  background: `linear-gradient(${135 + i * 25}deg, 
-                    hsl(${180 + i * 20}, 60%, ${12 + i * 2}%), 
-                    hsl(${200 + i * 15}, 50%, ${8 + i * 3}%))`,
-                }}
+              <img
+                src={shot.path_thumbnail}
+                alt={`${game.title} screenshot ${i + 1}`}
+                className="h-full w-full object-cover"
               />
             </button>
           ))}
@@ -46,86 +50,37 @@ export function ProductHero({ game }: { game: GameDetail }) {
       </div>
 
       {/* Right — Purchase Panel */}
-      <div className="flex flex-col gap-4">
+      <div className="flex w-1/3 flex-col gap-4">
         {/* Title + age rating */}
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="font-headline text-4xl font-bold uppercase leading-none tracking-tight text-on-surface">
               {game.title}
             </h1>
-            <div className="mt-2 flex items-center gap-2">
-              <span className="flex items-center gap-1 text-primary">
-                {"★★★★★".split("").map((s, i) => (
-                  <span key={i} className="text-xs">
-                    {s}
-                  </span>
-                ))}
-              </span>
-              <span className="text-xs uppercase tracking-wider text-on-surface-variant">
-                Open World Action RPG
-              </span>
-            </div>
+            <p className="mt-2 text-xs uppercase tracking-wider text-on-surface-variant">
+              {genreText}
+            </p>
           </div>
           <span className="shrink-0 rounded-md bg-surface-container-highest px-2 py-1 text-center text-[10px] font-bold uppercase leading-tight text-on-surface-variant">
-            {game.ageRating.split(" ")[0]}
-            <br />
-            <span className="text-[9px]">{game.ageRating.split(" ")[1]}</span>
+            {ageText}
           </span>
         </div>
 
-        {/* Edition selector */}
+        {/* Pricing from API */}
         <div>
           <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant">
-            Select Edition
+            Price
           </p>
-
-          {/* Standard Edition */}
-          <button
-            onClick={() => setSelectedEdition("standard")}
-            className={`mb-2 flex w-full items-center justify-between rounded-lg px-4 py-3 text-left transition-all ${
-              selectedEdition === "standard"
-                ? "bg-surface-container-highest ring-1 ring-primary/30"
-                : "bg-surface-container-high hover:bg-surface-container-highest"
-            }`}
-          >
-            <div>
-              <p className="text-sm font-bold text-on-surface">
-                Standard Edition
-              </p>
-              <p className="text-[10px] text-on-surface-variant">
-                Base Game and Digital Soundtrack
-              </p>
-            </div>
+          <div className="flex items-center justify-between rounded-lg bg-surface-container-high px-4 py-3">
+            <span className="text-sm font-bold text-on-surface">Standard Edition</span>
             <span className="text-lg font-bold text-on-surface">
-              ${game.editionStandardPrice.toFixed(2)}
+              ${finalPrice.toFixed(2)}
             </span>
-          </button>
-
-          {/* Digital Deluxe */}
-          <button
-            onClick={() => setSelectedEdition("deluxe")}
-            className={`flex w-full items-center justify-between rounded-lg px-4 py-3 text-left transition-all ${
-              selectedEdition === "deluxe"
-                ? "bg-surface-container-highest ring-1 ring-primary/30"
-                : "bg-surface-container-high hover:bg-surface-container-highest"
-            }`}
-          >
-            <div>
-              <p className="text-sm font-bold text-on-surface">
-                Digital Deluxe
-              </p>
-              <p className="text-[10px] text-on-surface-variant">
-                Base Game, Season Pass, and Exclusive Armor Sets
-              </p>
-            </div>
-            <span className="text-lg font-bold text-on-surface">
-              ${game.editionDeluxePrice.toFixed(2)}
-            </span>
-          </button>
+          </div>
         </div>
 
         {/* CTA Buttons */}
-        <button className="w-full rounded-xl bg-gradient-to-r from-primary to-primary-container py-3.5 text-sm font-bold uppercase tracking-wider text-on-primary-fixed transition-opacity hover:opacity-90">
+        <button className="w-full rounded-xl bg-gradient-to-r from-primary to-primary-container py-3.5 text-sm font-bold uppercase tracking-wider text-on-primary transition-opacity hover:opacity-90">
           Buy Now
         </button>
 
@@ -146,12 +101,12 @@ export function ProductHero({ game }: { game: GameDetail }) {
         </div>
 
         {/* Scores */}
-        <div className="flex items-center gap-6 pt-2">
+        <div className="flex items-center justify-between gap-0 pt-2">
           {/* Metacritic */}
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-surface-container-highest">
+            <div className="flex h-12 w-fit items-center justify-center rounded-lg bg-surface-container-highest px-3">
               <span className="text-xl font-bold text-primary">
-                {game.metaScore}
+                {game.metacritic_score ?? 0}
               </span>
             </div>
             <span className="text-[10px] uppercase tracking-wider text-on-surface-variant">
@@ -161,14 +116,37 @@ export function ProductHero({ game }: { game: GameDetail }) {
 
           {/* Recommended */}
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-surface-container-highest">
+            <div className="flex h-12 w-fit items-center justify-center rounded-lg bg-surface-container-highest px-3">
               <span className="text-xl font-bold text-tertiary">
-                {game.recommendedPercent}%
+                {Math.min(99, Math.round((game.recommendations_total ?? 0) / 250))}%
               </span>
             </div>
             <span className="text-[10px] uppercase tracking-wider text-on-surface-variant">
               Recommended
             </span>
+          </div>
+        </div>
+
+        <div className="space-y-3 text-xs">
+          <div className="flex justify-between">
+            <span className="text-on-surface-variant">Developer</span>
+            <span className="font-medium text-on-surface">{game.developers.join(", ")}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-on-surface-variant">Publisher</span>
+            <span className="font-medium text-on-surface">{game.publishers.join(", ")}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-on-surface-variant">Release Date</span>
+            <span className="font-medium text-on-surface">{game.releaseDate}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-on-surface-variant">Genre</span>
+            <span className="font-medium text-on-surface">{genreMetaText || "N/A"}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-on-surface-variant">Categories</span>
+            <span className="w-[272px] font-medium text-on-surface">{categoryText || "N/A"}</span>
           </div>
         </div>
       </div>

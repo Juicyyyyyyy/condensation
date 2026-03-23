@@ -65,36 +65,59 @@ export interface CatalogFilters {
 
 /* ── Product Detail Page ── */
 
-export interface LanguageSupport {
-  language: string;
-  interface: boolean;
-  audio: boolean;
-  subtitles: boolean;
+export interface SteamCategory {
+  id: number;
+  description: string;
 }
 
-export interface SystemRequirements {
-  os: string;
-  processor: string;
-  memory: string;
-  graphics: string;
-  storage: string;
+export interface SteamGenre {
+  id: string;
+  description: string;
 }
 
-export interface GameDetail extends Game {
-  description: string[];
-  developer: string;
-  publisher: string;
-  features: string[];
-  languages: LanguageSupport[];
-  metaScore: number;
-  recommendedPercent: number;
-  ageRating: string;
-  editionStandardPrice: number;
-  editionDeluxePrice: number;
-  systemRequirements: {
-    minimum: SystemRequirements;
-    recommended: SystemRequirements;
-  };
+export interface SteamScreenshot {
+  id: number;
+  path_thumbnail: string;
+  path_full: string;
+}
+
+export interface SteamPlatforms {
+  windows: boolean;
+  mac: boolean;
+  linux: boolean;
+}
+
+export interface SteamPriceOverview {
+  currency: string;
+  initial: number;
+  final: number;
+  discount_percent: number;
+  initial_formatted?: string;
+  final_formatted?: string;
+}
+
+export interface SteamRequirements {
+  minimum?: string;
+  recommended?: string;
+}
+
+export interface GameDetail extends Omit<Game, "genres"> {
+  detailed_description: string;
+  about_the_game: string;
+  supported_languages: string;
+  developers: string[];
+  publishers: string[];
+  categories: SteamCategory[];
+  genres: SteamGenre[];
+  platforms: SteamPlatforms;
+  price_overview: SteamPriceOverview;
+  screenshots: SteamScreenshot[];
+  pc_requirements: SteamRequirements;
+  mac_requirements?: SteamRequirements;
+  linux_requirements?: SteamRequirements;
+  recommendations_total?: number;
+  metacritic_score?: number;
+  required_age?: string | number;
 }
 
 export interface DeluxePerk {
