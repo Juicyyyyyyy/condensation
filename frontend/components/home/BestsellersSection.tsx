@@ -1,7 +1,9 @@
 import type { BestsellerGame } from "@/lib/types";
+import { formatPrice } from "@/lib/format-price";
 import { Badge } from "@/components/shared/Badge";
 
 export function BestsellersSection({ games }: { games: BestsellerGame[] }) {
+  let counter = 1;
   return (
     <section className="bg-surface-container-low">
       <div className="mx-auto max-w-7xl px-6 py-10">
@@ -12,15 +14,20 @@ export function BestsellersSection({ games }: { games: BestsellerGame[] }) {
           {games.map((game) => (
             <a
               key={game.id}
-              href="#"
+              href={`/games/${game.slug}`}
               className="group flex items-center gap-5 rounded-xl bg-surface-container-high p-4 transition-colors hover:bg-surface-bright"
             >
               <span className="flex h-12 w-12 shrink-0 items-center justify-center font-headline text-3xl font-bold text-on-surface-variant/30">
-                {game.rank}
+                {counter++}
               </span>
 
               <div className="h-16 w-12 shrink-0 overflow-hidden rounded">
-                <div className="h-full w-full bg-gradient-to-br from-surface-container-highest via-surface-bright to-surface-container" />
+                {game.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={game.image} alt={game.title} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="h-full w-full bg-gradient-to-br from-surface-container-highest via-surface-bright to-surface-container" />
+                )}
               </div>
 
               <div className="flex-1">
@@ -40,7 +47,7 @@ export function BestsellersSection({ games }: { games: BestsellerGame[] }) {
                   <Badge type="popular">Popular</Badge>
                 )}
                 <span className="font-headline text-lg font-bold text-on-surface">
-                  €{game.price.toFixed(2)}
+                  {formatPrice(game.price)}
                 </span>
               </div>
             </a>

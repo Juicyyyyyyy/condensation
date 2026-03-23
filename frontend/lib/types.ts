@@ -21,6 +21,8 @@ export interface Game {
   releaseDate?: string;
   releasedAgo?: string;
   timeLeft?: string;
+  image?: string;
+  headerImage?: string;
 }
 
 export interface HeroSlide {
@@ -32,6 +34,7 @@ export interface HeroSlide {
   price: number;
   gradientFrom: string;
   gradientTo: string;
+  image?: string;
 }
 
 export interface BestsellerGame extends Game {

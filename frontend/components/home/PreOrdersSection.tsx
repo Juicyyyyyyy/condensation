@@ -1,4 +1,5 @@
 import type { Game } from "@/lib/types";
+import { formatPrice } from "@/lib/format-price";
 
 export function PreOrdersSection({ games }: { games: Game[] }) {
   return (
@@ -23,7 +24,12 @@ export function PreOrdersSection({ games }: { games: Game[] }) {
               className="group flex gap-4 rounded-xl bg-surface-container-high p-4 transition-colors hover:bg-surface-bright"
             >
               <div className="h-24 w-20 shrink-0 overflow-hidden rounded-lg">
-                <div className="h-full w-full bg-gradient-to-br from-secondary-container/40 via-surface-bright to-surface-container" />
+                {game.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={game.image} alt={game.title} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="h-full w-full bg-gradient-to-br from-secondary-container/40 via-surface-bright to-surface-container" />
+                )}
               </div>
               <div className="flex flex-col justify-between">
                 <div>
@@ -53,7 +59,7 @@ export function PreOrdersSection({ games }: { games: Game[] }) {
                   )}
                 </div>
                 <span className="font-headline text-base font-bold text-on-surface">
-                  €{game.price.toFixed(2)}
+                  {formatPrice(game.price)}
                 </span>
               </div>
             </a>
