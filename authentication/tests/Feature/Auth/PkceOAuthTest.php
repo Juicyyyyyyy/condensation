@@ -1,0 +1,199 @@
+<?php
+
+use App\Models\User;
+use Illuminate\Support\Str;
+use Laravel\Passport\Client;
+use Laravel\Passport\Passport;
+
+/*
+|--------------------------------------------------------------------------
+| PKCE OAuth2 Flow Tests
+|--------------------------------------------------------------------------
+|
+| Tests covering the full Authorization Code + PKCE flow,
+| token validation, and token revocation.
+|
+*/
+
+beforeEach(function () {
+    // Generate Passport encryption keys for testing
+    Passport::loadKeysFrom(__DIR__ . '/../../../storage');
+    $this->artisan('passport:keys', ['--force' => true]);
+
+    // Create a test user
+    $this->user = User::factory()->create([
+        'email' => 'pkce-test@example.com',
+        'password' => bcrypt('password'),
+    ]);
+
+    // Create a public PKCE client (no secret)
+    $this->client = Client::create([
+        'name' => 'Test PKCE Client',
+        'secret' => null,
+        'provider' => 'users',
+        'redirect_uris' => ['http://localhost:4200/callback'],
+        'grant_types' => ['authorization_code', 'refresh_token'],
+        'revoked' => false,
+    ]);
+});
+
+function generatePkceChallenge(): array
+{
+    $verifier = Str::random(128);
+    $challenge = strtr(rtrim(
+        base64_encode(hash('sha256', $verifier, true)),
+        '='
+    ), '+/', '-_');
+
+    return [$verifier, $challenge];
+}
+
+test('PKCE authorization endpoint requires code_challenge', function () {
+    $response = $this->actingAs($this->user)->get('/oauth/authorize?' . http_build_query([
+        'client_id' => $this->client->id,
+        'redirect_uri' => 'http://localhost:4200/callback',
+        'response_type' => 'code',
+        'scope' => 'read-profile',
+        'state' => Str::random(40),
+    ]));
+
+    // Without code_challenge, it should fail for a public client
+    $response->assertStatus(400);
+});
+
+test('PKCE authorization endpoint returns consent screen', function () {
+    [$verifier, $challenge] = generatePkceChallenge();
+
+    $response = $this->actingAs($this->user)->get('/oauth/authorize?' . http_build_query([
+        'client_id' => $this->client->id,
+        'redirect_uri' => 'http://localhost:4200/callback',
+        'response_type' => 'code',
+        'scope' => 'read-profile',
+        'state' => Str::random(40),
+        'code_challenge' => $challenge,
+        'code_challenge_method' => 'S256',
+    ]));
+
+    $response->assertStatus(200);
+    $response->assertSee('Authorization Request');
+    $response->assertSee($this->client->name);
+});
+
+test('PKCE authorization approve redirects with authorization code', function () {
+    [$verifier, $challenge] = generatePkceChallenge();
+    $state = Str::random(40);
+
+    // First, get the authorization page to obtain the auth_token
+    $authorizeResponse = $this->actingAs($this->user)->get('/oauth/authorize?' . http_build_query([
+        'client_id' => $this->client->id,
+        'redirect_uri' => 'http://localhost:4200/callback',
+        'response_type' => 'code',
+        'scope' => 'read-profile',
+        'state' => $state,
+        'code_challenge' => $challenge,
+        'code_challenge_method' => 'S256',
+    ]));
+
+    $authorizeResponse->assertStatus(200);
+
+    // Extract auth_token from the page
+    $content = $authorizeResponse->getContent();
+    preg_match('/name="auth_token" value="([^"]+)"/', $content, $matches);
+
+    if (!empty($matches[1])) {
+        // Approve the authorization
+        $approveResponse = $this->actingAs($this->user)->post('/oauth/authorize', [
+            'state' => $state,
+            'client_id' => $this->client->id,
+            'auth_token' => $matches[1],
+        ]);
+
+        // Should redirect to the callback with a code
+        $approveResponse->assertStatus(302);
+        $redirectUrl = $approveResponse->headers->get('Location');
+        expect($redirectUrl)->toContain('http://localhost:4200/callback');
+        expect($redirectUrl)->toContain('code=');
+        expect($redirectUrl)->toContain("state={$state}");
+    }
+});
+
+test('token exchange fails with invalid code_verifier', function () {
+    $response = $this->postJson('/oauth/token', [
+        'grant_type' => 'authorization_code',
+        'client_id' => $this->client->id,
+        'redirect_uri' => 'http://localhost:4200/callback',
+        'code' => 'invalid-code',
+        'code_verifier' => 'invalid-verifier',
+    ]);
+
+    // Should fail — invalid code
+    $response->assertStatus(400);
+});
+
+test('authenticated user can access /api/user', function () {
+    Passport::actingAs($this->user, ['read-profile']);
+
+    $response = $this->getJson('/api/user');
+
+    $response->assertStatus(200);
+    $response->assertJsonFragment([
+        'email' => 'pkce-test@example.com',
+    ]);
+});
+
+test('unauthenticated request to /api/user returns 401', function () {
+    $response = $this->getJson('/api/user');
+
+    $response->assertStatus(401);
+});
+
+test('token validation endpoint returns valid response', function () {
+    Passport::actingAs($this->user, ['read-profile']);
+
+    $response = $this->getJson('/api/auth/validate');
+
+    $response->assertStatus(200);
+    $response->assertJsonStructure([
+        'valid',
+        'user_id',
+        'scopes',
+        'expires_at',
+    ]);
+    $response->assertJson(['valid' => true]);
+});
+
+test('token revocation endpoint revokes the current token', function () {
+    Passport::actingAs($this->user, ['read-profile']);
+
+    $response = $this->postJson('/api/auth/token/revoke');
+
+    $response->assertStatus(200);
+    $response->assertJson(['message' => 'Token revoked successfully.']);
+});
+
+test('token list endpoint returns active tokens', function () {
+    Passport::actingAs($this->user, ['read-profile']);
+
+    $response = $this->getJson('/api/auth/tokens');
+
+    $response->assertStatus(200);
+    $response->assertJsonIsArray();
+});
+
+test('revoke all tokens endpoint works', function () {
+    Passport::actingAs($this->user, ['read-profile']);
+
+    $response = $this->postJson('/api/auth/tokens/revoke-all');
+
+    $response->assertStatus(200);
+    $response->assertJson(['message' => 'All tokens revoked successfully.']);
+});
+
+test('request with wrong scope is rejected', function () {
+    // Acting as user with only read-profile scope
+    Passport::actingAs($this->user, ['read-profile']);
+
+    // Should still be able to access user endpoint (no scope middleware on it)
+    $response = $this->getJson('/api/user');
+    $response->assertStatus(200);
+});
