@@ -16,17 +16,17 @@ class OAuthClientSeeder extends Seeder
      */
     public function run(): void
     {
-        // Only seed if no PKCE client exists yet
+        $clientId = env('CLIENT_ID', Str::uuid()->toString());
+
+        // Only seed if this specific client doesn't exist yet
         $existingClient = DB::table('oauth_clients')
-            ->where('name', 'SPA Frontend (PKCE)')
+            ->where('id', $clientId)
             ->first();
 
         if ($existingClient) {
             $this->command->info('PKCE OAuth client already exists, skipping.');
             return;
         }
-
-        $clientId = Str::uuid()->toString();
 
         DB::table('oauth_clients')->insert([
             'id' => $clientId,

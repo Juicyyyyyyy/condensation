@@ -2,15 +2,27 @@
 set -e
 
 echo "Waiting for database connection..."
-# Wait for Database to be ready
+# Wait for Database to be ready (max 60 seconds)
+MAX_RETRIES=60
+COUNT=0
 if [ "$DB_CONNECTION" = "pgsql" ]; then
-    until PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USERNAME" -d "$DB_DATABASE" -c '\q' > /dev/null 2>&1; do
-        echo "Postgres is unavailable - sleeping"
+    until pg_isready -h "$DB_HOST" -p "${DB_PORT:-5432}" -U "$DB_USERNAME" > /dev/null 2>&1; do
+        COUNT=$((COUNT + 1))
+        if [ $COUNT -ge $MAX_RETRIES ]; then
+            echo "ERROR: Could not connect to postgres after ${MAX_RETRIES}s. Is the postgres container on the same docker network?"
+            exit 1
+        fi
+        echo "Postgres is unavailable - sleeping ($COUNT/${MAX_RETRIES})"
         sleep 1
     done
 else
     until mysqladmin ping -h "$DB_HOST" -u "$DB_USERNAME" -p"$DB_PASSWORD" --skip-ssl --silent; do
-        echo "MySQL is unavailable - sleeping"
+        COUNT=$((COUNT + 1))
+        if [ $COUNT -ge $MAX_RETRIES ]; then
+            echo "ERROR: Could not connect to MySQL after ${MAX_RETRIES}s."
+            exit 1
+        fi
+        echo "MySQL is unavailable - sleeping ($COUNT/${MAX_RETRIES})"
         sleep 1
     done
 fi
@@ -26,7 +38,7 @@ if [ ! -f storage/oauth-private.key ]; then
 fi
 
 # Seed the PKCE client if the database was just initialized
-php artisan db:seed --class=Database\\Seeders\\OAuthClientSeeder --force 2>/dev/null || true
+php artisan db:seed --class=Database\\Seeders\\OAuthClientSeeder --force
 
 echo "Clearing and caching config..."
 php artisan config:cache

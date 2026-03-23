@@ -1,10 +1,13 @@
 version: '3.8'
 
+name: condensation
+
 services:
   auth:
     build:
       context: ./authentication
       dockerfile: Dockerfile
+    restart: on-failure
     ports:
       - "8000:80"
     environment:
@@ -19,6 +22,7 @@ services:
       - DB_DATABASE=auth_db
       - DB_USERNAME=postgres
       - DB_PASSWORD=postgres
+      - CLIENT_ID=ead85488-0ee1-41f9-9703-eac26103f5f4
       - CACHE_STORE=database
       - SESSION_DRIVER=database
       - QUEUE_CONNECTION=database
