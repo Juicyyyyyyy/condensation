@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - "v*.*.*"   # Matches semver tags like v1.0.0, v2.3.1, etc.
+  workflow_dispatch:
+    inputs:
+      image-tag:
+        description: "Tag to apply to the image (defaults to 'test')"
+        required: false
+        default: "test"
 
 jobs:
   build-auth-prod:
@@ -11,7 +17,7 @@ jobs:
     uses: ./.github/workflows/docker-build-template.yaml
     with:
       image-name: ghcr.io/${{ github.repository_owner }}/fullstack_project/auth
-      image-tag: ${{ github.ref_name }}
+      image-tag: ${{ inputs.image-tag || github.ref_name }}
       dockerfile-context: ./authentication
     secrets:
       GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
