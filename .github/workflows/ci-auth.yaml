@@ -2,11 +2,7 @@ name: CI — Auth
 
 on:
   push:
-    paths:
-      - "authentication/**"
   pull_request:
-    paths:
-      - "authentication/**"
   workflow_dispatch:
 
 jobs:
