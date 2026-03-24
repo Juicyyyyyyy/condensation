@@ -13,7 +13,7 @@
         <x-input-label for="name" :value="__('Username')" class="ml-1" />
         <div class="group relative">
           <x-text-input id="name" type="text" name="name" :value="old('name')"
-            required autofocus autocomplete="name" placeholder="ghost_operative" />
+            required autofocus autocomplete="name" placeholder="Username" />
           <div class="absolute bottom-0 left-0 h-0.5 w-0 rounded-full bg-primary transition-all duration-300 group-focus-within:w-full"></div>
         </div>
         <x-input-error :messages="$errors->get('name')" class="mt-1" />
@@ -24,7 +24,7 @@
         <x-input-label for="email" :value="__('Email')" class="ml-1" />
         <div class="group relative">
           <x-text-input id="email" type="email" name="email" :value="old('email')"
-            required autocomplete="username" placeholder="identity@neonvoid.market" />
+            required autocomplete="username" placeholder="email@example.com" />
           <div class="absolute bottom-0 left-0 h-0.5 w-0 rounded-full bg-primary transition-all duration-300 group-focus-within:w-full"></div>
         </div>
         <x-input-error :messages="$errors->get('email')" class="mt-1" />
@@ -62,7 +62,7 @@
         <x-input-label for="password_confirmation" :value="__('Confirm Password')" class="ml-1" />
         <div class="group relative">
           <input id="password_confirmation" type="password" name="password_confirmation"
-                 required autocomplete="new-password" placeholder="{{ __('Repeat your security key') }}"
+                 required autocomplete="new-password" placeholder="{{ __('Repeat your password') }}"
                  class="w-full rounded-xl border-0 bg-surface-container-highest px-4 py-4 pr-12 text-sm text-on-surface placeholder:text-outline/50 outline-none transition-all focus:ring-1 focus:ring-primary/40" />
           <button type="button" aria-label="{{ __('Show confirm password') }}"
                   onclick="togglePassword('password_confirmation', this)"
@@ -107,29 +107,6 @@
         {{ __('Create Account') }}
       </button>
     </form>
-
-    {{-- Divider --}}
-    <div class="relative my-8 flex items-center">
-      <div class="grow border-t border-outline-variant/20"></div>
-      <span class="mx-4 shrink-0 text-xs font-bold uppercase tracking-[0.25em] text-outline">or sign up with</span>
-      <div class="grow border-t border-outline-variant/20"></div>
-    </div>
-
-    {{-- OAuth Grid --}}
-    <div class="grid grid-cols-5 gap-3">
-      @foreach([
-        ['icon' => 'fa-google',      'label' => 'Google',      'hover' => 'hover:text-secondary'],
-        ['icon' => 'fa-steam',       'label' => 'Steam',       'hover' => 'hover:text-secondary'],
-        ['icon' => 'fa-xbox',        'label' => 'Xbox',        'hover' => 'hover:text-tertiary'],
-        ['icon' => 'fa-playstation', 'label' => 'PlayStation', 'hover' => 'hover:text-primary'],
-        ['icon' => 'fa-discord',     'label' => 'Discord',     'hover' => 'hover:text-primary'],
-      ] as $provider)
-        <button type="button" aria-label="{{ __('Sign up with :provider', ['provider' => $provider['label']]) }}"
-                class="flex h-11 w-full cursor-pointer items-center justify-center rounded-xl bg-surface-container-highest transition-colors hover:bg-surface-bright">
-          <i class="fa-brands {{ $provider['icon'] }} text-lg text-on-surface-variant transition-colors {{ $provider['hover'] }}"></i>
-        </button>
-      @endforeach
-    </div>
 
     <div class="mt-8 text-center">
       <p class="text-sm text-on-surface-variant">

@@ -11,9 +11,6 @@
   <link rel="preconnect" href="https://fonts.bunny.net">
   <link href="https://fonts.bunny.net/css?family=space-grotesk:400,700,900&family=inter:400,500,600,700&display=swap" rel="stylesheet" />
 
-  <!-- FontAwesome Free (brands only) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/brands.min.css" />
-
   <!-- Design tokens + glass panel -->
   <style>
     :root {
@@ -38,7 +35,9 @@
     }
   </style>
 
-  <!-- tailwind.config MUST be defined before the CDN script loads -->
+  <!-- CDN Tailwind — config must be set AFTER this loads (tailwind is undefined before) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
   <script>
     tailwind.config = {
       theme: {
@@ -66,9 +65,6 @@
       },
     };
   </script>
-
-  <!-- CDN Tailwind — must come AFTER tailwind.config -->
-  <script src="https://cdn.tailwindcss.com"></script>
 
   <!-- Vanilla JS helpers -->
   <script>
