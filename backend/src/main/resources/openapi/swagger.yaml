@@ -1,0 +1,199 @@
+openapi: 3.0.3
+info:
+  title: Condensation Marketplace API
+  description: API REST pour la gestion du catalogue, des transactions peer-to-peer et des alertes de la plateforme Condensation.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api/v1
+tags:
+  - name: Catalog
+    description: Gestion et affichage des jeux
+  - name: Marketplace
+    description: Consultation des clés de jeux
+  - name: Notifications
+    description: Gestion des alertes de prix
+
+paths:
+  /games:
+    get:
+      tags:
+        - Catalog
+      summary: Récupérer le catalogue de jeux
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Recherche par titre
+        - name: is_trending
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Liste des jeux
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Game'
+
+    post:
+      tags:
+        - Catalog
+      summary: Ajouter un nouveau jeu au catalogue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameCreateRequest'
+      responses:
+        '201':
+          description: Jeu créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '400':
+          description: Données invalides (ex. slug ou steamAppId déjà existant)
+
+  /games/{gameId}:
+    get:
+      tags:
+        - Catalog
+      summary: Détails d'un jeu spécifique
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Détails du jeu
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '404':
+          description: Jeu introuvable
+
+  /games/{gameId}/keys:
+    get:
+      tags:
+        - Marketplace
+      summary: Lister les clés disponibles pour un jeu
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Liste des clés disponibles (non vendues)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GameKeyResponse'
+
+  /alerts:
+    post:
+      tags:
+        - Notifications
+      summary: Créer une alerte de prix pour un jeu
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PriceAlertRequest'
+      responses:
+        '201':
+          description: Alerte créée (déclenchera des événements Kafka)
+
+components:
+  schemas:
+    Game:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        slug:
+          type: string
+        steamAppId:
+          type: integer
+        basePrice:
+          type: number
+          format: float
+        currentDiscountPercent:
+          type: integer
+        coverImageUrl:
+          type: string
+          format: uri
+        isTrending:
+          type: boolean
+
+    GameCreateRequest:
+      type: object
+      required:
+        - title
+        - slug
+        - basePrice
+      properties:
+        title:
+          type: string
+        slug:
+          type: string
+          description: Identifiant unique pour l'URL (ex. the-witcher-3)
+        steamAppId:
+          type: integer
+          description: ID officiel de Steam pour la synchro future
+        basePrice:
+          type: number
+          format: float
+        coverImageUrl:
+          type: string
+          format: uri
+          description: URL de l'image au format 3:4
+        isTrending:
+          type: boolean
+          default: false
+
+    GameKeyResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        sellerId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Null si vendu par la plateforme
+        price:
+          type: number
+          format: float
+          description: Prix de vente actuel
+
+    PriceAlertRequest:
+      type: object
+      required:
+        - gameId
+        - targetPrice
+      properties:
+        gameId:
+          type: string
+          format: uuid
+        targetPrice:
+          type: number
+          format: float
