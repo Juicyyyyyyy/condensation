@@ -1,13 +1,13 @@
-package fr.fullstack.orderservice;
+package fr.fullstack.backend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class OrderServiceApplication {
+public class BackendApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(OrderServiceApplication.class, args);
+        SpringApplication.run(BackendApplication.class, args);
     }
 
 }
