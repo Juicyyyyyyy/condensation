@@ -83,17 +83,14 @@ public class Game {
     @Column(name = "discount_percent")
     private Short discountPercent;
 
-    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "pc_requirements", columnDefinition = "jsonb")
-    private Map<String, Object> pcRequirements;
+    private String pcRequirements;
 
-    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "mac_requirements", columnDefinition = "jsonb")
-    private Map<String, Object> macRequirements;
+    private String macRequirements;
 
-    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "linux_requirements", columnDefinition = "jsonb")
-    private Map<String, Object> linuxRequirements;
+    private String linuxRequirements;
 
     @Column(name = "reduction_percentage")
     private Integer reductionPercentage;
