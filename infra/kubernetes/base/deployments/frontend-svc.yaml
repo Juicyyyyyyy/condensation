@@ -5,7 +5,7 @@ metadata:
     app: frontend-svc
   name: frontend-svc
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: frontend-svc
@@ -15,8 +15,13 @@ spec:
       labels:
         app: frontend-svc
     spec:
+      imagePullSecrets:
+      - name: ghcr-secret
       containers:
-      - image: juicybkrr/condensation-frontend
+      - image: ghcr.io/corentin-dupaigne/fullstack_project/frontend
+        env:
+          - name: HOSTNAME
+            value: "0.0.0.0"
         name: condensation-frontend
         resources: {}
 status: {}
