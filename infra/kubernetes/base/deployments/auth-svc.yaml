@@ -5,7 +5,7 @@ metadata:
     app: auth-svc
   name: auth-svc
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: auth-svc
@@ -20,5 +20,6 @@ spec:
       containers:
       - image: ghcr.io/corentin-dupaigne/fullstack_project/auth
         name: condensation-auth
+        imagePullPolicy: Always
         resources: {}
 status: {}
