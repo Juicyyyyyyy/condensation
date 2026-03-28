@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 const sections = [
@@ -27,11 +28,10 @@ export function SettingsClient({ userName }: { userName: string | null }) {
             <button
               key={section}
               onClick={() => setActiveSection(section)}
-              className={`whitespace-nowrap rounded-lg px-4 py-2.5 text-left text-sm font-medium transition-colors ${
-                activeSection === section
-                  ? "bg-primary/10 text-primary"
-                  : "text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface"
-              }`}
+              className={`whitespace-nowrap rounded-lg px-4 py-2.5 text-left text-sm font-medium transition-colors ${activeSection === section
+                ? "bg-primary/10 text-primary"
+                : "text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface"
+                }`}
             >
               {section}
             </button>
@@ -156,15 +156,15 @@ function LinkedAccountsSection() {
           </h4>
           <ul className="mt-2 space-y-1.5 text-xs text-on-surface-variant">
             <li className="flex items-center gap-2">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-tertiary"><path d="M20 6 9 17l-5-5"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-tertiary"><path d="M20 6 9 17l-5-5" /></svg>
               Personalized game recommendations based on your library
             </li>
             <li className="flex items-center gap-2">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-tertiary"><path d="M20 6 9 17l-5-5"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-tertiary"><path d="M20 6 9 17l-5-5" /></svg>
               Automatic library sync to avoid duplicate purchases
             </li>
             <li className="flex items-center gap-2">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-tertiary"><path d="M20 6 9 17l-5-5"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-tertiary"><path d="M20 6 9 17l-5-5" /></svg>
               Display Steam profile and achievements on your profile
             </li>
           </ul>
@@ -224,9 +224,9 @@ function NotificationsSection() {
       <SettingsCard title="Watched Games">
         <p className="text-sm text-on-surface-variant">
           You are not watching any games yet. Browse the{" "}
-          <a href="/games" className="text-primary hover:underline">
+          <Link href="/games" className="text-primary hover:underline">
             catalog
-          </a>{" "}
+          </Link>{" "}
           and add games to your watchlist to receive price drop alerts.
         </p>
       </SettingsCard>
@@ -348,14 +348,12 @@ function ToggleRow({
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
-        className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-          checked ? "bg-primary" : "bg-outline-variant"
-        }`}
+        className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${checked ? "bg-primary" : "bg-outline-variant"
+          }`}
       >
         <span
-          className={`inline-block h-4 w-4 rounded-full bg-on-primary transition-transform ${
-            checked ? "translate-x-6" : "translate-x-1"
-          }`}
+          className={`inline-block h-4 w-4 rounded-full bg-on-primary transition-transform ${checked ? "translate-x-6" : "translate-x-1"
+            }`}
         />
       </button>
     </div>
