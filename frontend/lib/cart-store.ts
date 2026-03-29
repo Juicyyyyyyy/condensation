@@ -84,7 +84,7 @@ function writeState(next: CartState) {
   notifyListeners();
 }
 
-let listeners: Set<() => void> = new Set();
+const listeners: Set<() => void> = new Set();
 
 function notifyListeners() {
   for (const listener of listeners) {
