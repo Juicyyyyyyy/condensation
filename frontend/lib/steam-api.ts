@@ -1,4 +1,4 @@
-import type { Game, GameDetail, Platform, SteamAppData } from "./types";
+import type { BackendGameDetail, Game, GameDetail, Platform } from "./types";
 
 /* ── Raw Steam featured API types ── */
 
@@ -131,6 +131,96 @@ function searchItemToGame(item: SteamSearchItem): Game {
   };
 }
 
+/* ── Backend /api/feature response types ── */
+
+export interface BackendGenre {
+  id: number;
+  description: string;
+}
+
+export interface GameSummary {
+  id: number;
+  steamAppId: number;
+  name: string;
+  slug: string;
+  headerImage: string;
+  priceFinal: number;
+  reductionPercentage: number;
+  recommendationsTotal: number;
+  releaseDate: string;
+  genres: BackendGenre[];
+}
+
+export interface BackendPage {
+  content: GameSummary[];
+  totalElements: number;
+  totalPages: number;
+}
+
+export interface BackendLowDeals {
+  under_5: BackendPage;
+  under_10: BackendPage;
+  under_20: BackendPage;
+}
+
+export interface BackendFeatureResponse {
+  topseller: BackendPage;
+  new_release: BackendPage;
+  low_deals: BackendLowDeals;
+  upcoming: BackendPage;
+}
+
+function gameSummaryToRawItem(game: GameSummary): RawItem {
+  const discounted = game.reductionPercentage > 0;
+  const finalCents = game.priceFinal;
+  const originalCents = discounted
+    ? Math.round(finalCents / (1 - game.reductionPercentage / 100))
+    : finalCents;
+
+  return {
+    id: game.steamAppId,
+    name: game.name,
+    discounted,
+    discount_percent: game.reductionPercentage,
+    original_price: discounted ? originalCents : null,
+    final_price: finalCents,
+    currency: "USD",
+    large_capsule_image: game.headerImage,
+    small_capsule_image: game.headerImage,
+    header_image: game.headerImage,
+    windows_available: true,
+    mac_available: false,
+    linux_available: false,
+  };
+}
+
+function backendPageToItems(page: BackendPage): RawItem[] {
+  return page.content.map(gameSummaryToRawItem);
+}
+
+function backendToRawFeaturedData(
+  data: BackendFeatureResponse
+): RawFeaturedData {
+  const dealItems = [
+    ...data.low_deals.under_5.content,
+    ...data.low_deals.under_10.content,
+    ...data.low_deals.under_20.content,
+  ];
+  const seen = new Set<number>();
+  const uniqueDealItems = dealItems.filter((g) => {
+    if (seen.has(g.steamAppId)) return false;
+    seen.add(g.steamAppId);
+    return true;
+  });
+
+  return {
+    specials: { items: uniqueDealItems.map(gameSummaryToRawItem) },
+    top_sellers: { items: backendPageToItems(data.topseller) },
+    new_releases: { items: backendPageToItems(data.new_release) },
+    coming_soon: { items: backendPageToItems(data.upcoming) },
+  };
+}
+
 /* ── In-memory cache for featured data ── */
 
 let cachedFeaturedData: RawFeaturedData | null = null;
@@ -141,15 +231,17 @@ export async function fetchFeaturedData(): Promise<RawFeaturedData> {
   const res = await fetch(`${baseUrl}/api/steam/featured`, {
     next: { revalidate: 3600 },
   });
-  cachedFeaturedData = await res.json();
-  return cachedFeaturedData as RawFeaturedData;
+  if (!res.ok) throw new Error(`Failed to fetch featured data: ${res.status}`);
+  const data: BackendFeatureResponse = await res.json();
+  cachedFeaturedData = backendToRawFeaturedData(data);
+  return cachedFeaturedData;
 }
 
 /* ── Steam app details ── */
 
 export async function fetchSteamAppDetails(
   appid: number
-): Promise<SteamAppData | null> {
+): Promise<BackendGameDetail | null> {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
   const res = await fetch(`${baseUrl}/api/steam/${appid}`);
   if (!res.ok) return null;
@@ -157,37 +249,58 @@ export async function fetchSteamAppDetails(
 }
 
 export function steamDataToGameDetail(
-  appData: SteamAppData,
+  appData: BackendGameDetail,
   basePrice: number
 ): Partial<GameDetail> {
+  const developers = appData.companies
+    .filter((c) => c.role === "developer")
+    .map((c) => c.company.name);
+  const publishers = appData.companies
+    .filter((c) => c.role !== "developer")
+    .map((c) => c.company.name);
+
+  const initialCents = appData.priceInitial || Math.round(basePrice * 100);
+  const finalCents = appData.priceFinal || Math.round(basePrice * 100);
+
   return {
-    detailed_description: appData.detailed_description ?? "",
-    about_the_game: appData.about_the_game ?? "",
-    supported_languages: appData.supported_languages ?? "English",
-    developers: appData.developers ?? ["Unknown"],
-    publishers: appData.publishers ?? ["Unknown"],
-    releaseDate: appData.release_date?.date,
-    genres: appData.genres ?? [],
-    categories: appData.categories ?? [],
-    platforms: appData.platforms ?? { windows: true, mac: false, linux: false },
+    detailed_description: appData.detailedDescription ?? "",
+    about_the_game: appData.aboutTheGame ?? "",
+    supported_languages: appData.supportedLanguages ?? "English",
+    developers: developers.length ? developers : ["Unknown"],
+    publishers: publishers.length ? publishers : ["Unknown"],
+    releaseDate: appData.releaseDateRaw ?? appData.releaseDate,
+    genres: appData.genres.map((g) => ({ id: String(g.id), description: g.description })),
+    categories: appData.categories,
+    platforms: { windows: true, mac: false, linux: false },
     price_overview: {
-      currency: appData.price_overview?.currency ?? "USD",
-      initial: appData.price_overview?.initial ?? Math.round(basePrice * 100),
-      final: appData.price_overview?.final ?? Math.round(basePrice * 100),
-      discount_percent: appData.price_overview?.discount_percent ?? 0,
-      initial_formatted: appData.price_overview?.initial_formatted ?? "",
-      final_formatted:
-        appData.price_overview?.final_formatted ?? `$${basePrice.toFixed(2)}`,
+      currency: appData.currency ?? "USD",
+      initial: initialCents,
+      final: finalCents,
+      discount_percent: appData.reductionPercentage ?? 0,
+      initial_formatted: "",
+      final_formatted: `$${(finalCents / 100).toFixed(2)}`,
     },
-    screenshots: appData.screenshots ?? [],
-    movies: appData.movies ?? [],
-    pc_requirements: appData.pc_requirements ?? {},
-    mac_requirements: appData.mac_requirements,
-    linux_requirements: appData.linux_requirements,
-    recommendations_total: appData.recommendations?.total ?? 0,
-    metacritic_score: appData.metacritic?.score ?? 0,
-    required_age: appData.required_age ?? "",
-    headerImage: appData.header_image,
+    screenshots: appData.screenshots
+      .sort((a, b) => a.position - b.position)
+      .map((s) => ({ id: s.id, path_thumbnail: s.pathThumbnail, path_full: s.pathFull })),
+    movies: appData.movies
+      .sort((a, b) => a.position - b.position)
+      .map((m) => ({
+        id: m.id,
+        name: m.name,
+        thumbnail: m.thumbnail,
+        dash_av1: m.dashAv1,
+        dash_h264: m.dashH264,
+        hls_h264: m.hlsH264,
+        highlight: m.highlight,
+      })),
+    pc_requirements: appData.pcRequirements ?? {},
+    mac_requirements: appData.macRequirements,
+    linux_requirements: appData.linuxRequirements,
+    recommendations_total: appData.recommendationsTotal ?? 0,
+    metacritic_score: appData.metacriticScore ?? 0,
+    required_age: appData.requiredAge ?? "",
+    headerImage: appData.headerImage,
   };
 }
 

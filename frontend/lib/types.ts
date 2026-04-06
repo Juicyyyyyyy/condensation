@@ -152,28 +152,59 @@ export interface Achievement {
 
 export type RelatedGame = Game & { genreBadge: string };
 
-/* ── Steam App Details API response ── */
+/* ── Backend /api/games/{id} response ── */
 
-export interface SteamAppData {
+export interface BackendCompany {
+  company: { id: number; name: string };
+  role: string;
+}
+
+export interface BackendScreenshot {
+  id: number;
+  steamId: number;
+  pathThumbnail: string;
+  pathFull: string;
+  position: number;
+}
+
+export interface BackendMovie {
+  id: number;
+  steamId: number;
   name: string;
-  detailed_description?: string;
-  about_the_game?: string;
-  supported_languages?: string;
-  developers?: string[];
-  publishers?: string[];
-  genres?: SteamGenre[];
-  categories?: SteamCategory[];
-  platforms?: SteamPlatforms;
-  price_overview?: SteamPriceOverview;
-  screenshots?: SteamScreenshot[];
-  movies?: SteamMovie[];
-  pc_requirements?: SteamRequirements;
-  mac_requirements?: SteamRequirements;
-  linux_requirements?: SteamRequirements;
-  recommendations?: { total?: number };
-  metacritic?: { score?: number };
-  required_age?: number | string;
-  header_image?: string;
-  release_date?: { date: string };
+  thumbnail: string;
+  dashAv1?: string;
+  dashH264?: string;
+  hlsH264?: string;
+  highlight: boolean;
+  position: number;
+}
+
+export interface BackendGameDetail {
+  id: number;
+  steamAppId: number;
+  name: string;
+  slug: string;
+  headerImage: string;
+  priceFinal: number;
+  reductionPercentage: number;
+  recommendationsTotal: number;
+  releaseDate: string;
+  releaseDateRaw: string;
+  genres: { id: number; description: string }[];
+  detailedDescription: string;
+  aboutTheGame: string;
+  supportedLanguages: string;
+  requiredAge: number;
+  metacriticScore: number;
+  currency: string;
+  priceInitial: number;
+  pcRequirements: SteamRequirements;
+  macRequirements: SteamRequirements;
+  linuxRequirements: SteamRequirements;
+  companies: BackendCompany[];
+  categories: SteamCategory[];
+  screenshots: BackendScreenshot[];
+  movies: BackendMovie[];
+  updatedAt: string;
 }
 
