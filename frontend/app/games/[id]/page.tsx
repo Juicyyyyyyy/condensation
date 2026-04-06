@@ -44,13 +44,13 @@ export default async function ProductDetailPage({ params }: Props) {
   const breadcrumbItems = [
     { label: "Home", href: "/" },
     { label: "Games", href: "/games" },
-    ...(game.genres[0]?.description
+    ...(game.genres[0]?.id
       ? [
-          {
-            label: game.genres[0].description,
-            href: `/games?genre=${game.genres[0].description.toLowerCase()}`,
-          },
-        ]
+        {
+          label: game.genres[0].description,
+          href: `/games?genre=${game.genres[0].id}`,
+        },
+      ]
       : []),
     { label: game.name },
   ];

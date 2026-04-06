@@ -4,6 +4,7 @@ import type { BackendGameDetail, Game, Platform } from "./types";
 
 export interface RawItem {
   id: number;
+  backendId: number;
   name: string;
   discounted: boolean;
   discount_percent: number;
@@ -52,15 +53,15 @@ interface BackendPage {
 }
 
 interface BackendLowDeals {
-  under_5: BackendPage;
-  under_10: BackendPage;
-  under_20: BackendPage;
+  under5: BackendPage;
+  under10: BackendPage;
+  under20: BackendPage;
 }
 
 interface BackendFeatureResponse {
   topseller: BackendPage;
-  new_release: BackendPage;
-  low_deals: BackendLowDeals;
+  newRelease: BackendPage;
+  lowDeals: BackendLowDeals;
   upcoming: BackendPage;
 }
 
@@ -73,6 +74,7 @@ function gameSummaryToRawItem(game: GameSummary): RawItem {
 
   return {
     id: game.steamAppId,
+    backendId: game.id,
     name: game.name,
     discounted,
     discount_percent: game.reductionPercentage,
@@ -94,9 +96,9 @@ function backendPageToItems(page: BackendPage): RawItem[] {
 
 function backendToRawFeaturedData(data: BackendFeatureResponse): RawFeaturedData {
   const dealItems = [
-    ...data.low_deals.under_5.content,
-    ...data.low_deals.under_10.content,
-    ...data.low_deals.under_20.content,
+    ...(data.lowDeals?.under5?.content ?? []),
+    ...(data.lowDeals?.under10?.content ?? []),
+    ...(data.lowDeals?.under20?.content ?? []),
   ];
   const seen = new Set<number>();
   const uniqueDealItems = dealItems.filter((g) => {
@@ -107,9 +109,9 @@ function backendToRawFeaturedData(data: BackendFeatureResponse): RawFeaturedData
 
   return {
     specials: { items: uniqueDealItems.map(gameSummaryToRawItem) },
-    top_sellers: { items: backendPageToItems(data.topseller) },
-    new_releases: { items: backendPageToItems(data.new_release) },
-    coming_soon: { items: backendPageToItems(data.upcoming) },
+    top_sellers: { items: data.topseller ? backendPageToItems(data.topseller) : [] },
+    new_releases: { items: data.newRelease ? backendPageToItems(data.newRelease) : [] },
+    coming_soon: { items: data.upcoming ? backendPageToItems(data.upcoming) : [] },
   };
 }
 
@@ -137,6 +139,7 @@ export function centsToPrice(cents: number | null): number {
 export function rawToGame(
   item: {
     id: number;
+    backendId: number;
     name: string;
     discounted: boolean;
     discount_percent: number;
@@ -148,7 +151,7 @@ export function rawToGame(
     mac_available: boolean;
     linux_available: boolean;
   },
-  index: number
+  _index: number
 ): Game {
   const price = centsToPrice(item.final_price);
   const originalPrice = item.discounted
@@ -165,7 +168,7 @@ export function rawToGame(
   if (item.linux_available) platforms.push("linux");
 
   return {
-    id: `${item.id}-${index}`,
+    id: String(item.backendId),
     title: item.name,
     slug: item.name
       .toLowerCase()

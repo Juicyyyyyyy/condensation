@@ -9,7 +9,7 @@ export function ListCard({ game }: { game: Game }) {
 
   return (
     <a
-      href={`/games/${game.slug}`}
+      href={`/games/${game.id}`}
       className="group flex gap-4 rounded-lg bg-surface-container-high p-3 transition-colors hover:bg-surface-bright"
     >
       <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded">
