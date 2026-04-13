@@ -168,7 +168,18 @@ export function TopUpModal({ open, onClose }: TopUpModalProps) {
                     : s
                 )
               }
-              onSuccess={() => setState({ type: "success" })}
+              onSuccess={async () => {
+                setState({ type: "success" });
+                try {
+                  const res = await fetch("/api/balance");
+                  if (res.ok) {
+                    const data = await res.json();
+                    setBalance(data.balance);
+                  }
+                } catch {
+                  // balance will sync on close
+                }
+              }}
               onError={(msg) => setState({ type: "error", message: msg })}
             />
           </Elements>
