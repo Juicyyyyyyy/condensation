@@ -60,8 +60,9 @@ export function getBalance(): number {
   return readBalance();
 }
 
-export function addBalance(amount: number) {
-  writeBalance(readBalance() + amount);
+/** Set balance from backend cents value (e.g. 1500 → $15.00 in store) */
+export function setBalance(cents: number) {
+  writeBalance(cents / 100);
 }
 
 export function useBalance(): number {
