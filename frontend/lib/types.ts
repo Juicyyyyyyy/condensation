@@ -104,7 +104,6 @@ export interface BackendGameDetail {
   name: string;
   slug: string;
   headerImage: string;
-  platforms: { windows: boolean; mac: boolean; linux: boolean };
   priceFinal: number;
   reductionPercentage: number;
   recommendationsTotal: number;
@@ -126,4 +125,11 @@ export interface BackendGameDetail {
   screenshots: BackendScreenshot[];
   movies: BackendMovie[];
   updatedAt: string;
+}
+
+export interface Order {
+  id: number;
+  userId: number;
+  gamesId: number;
+  key: string;
 }
