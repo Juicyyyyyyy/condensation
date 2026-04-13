@@ -4,7 +4,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCartCount } from "@/lib/cart-store";
-import { useBalance, addBalance } from "@/lib/balance-store";
+import { useBalance } from "@/lib/balance-store";
+import { TopUpModal } from "@/components/wallet/TopUpModal";
 import type { Game } from "@/lib/types";
 import { formatCents } from "@/lib/format-price";
 
@@ -27,10 +28,8 @@ export function Header({ isLoggedIn = false, userName = null }: { isLoggedIn?: b
   const [preview, setPreview] = useState<PreviewResult | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [balanceOpen, setBalanceOpen] = useState(false);
-  const [addAmount, setAddAmount] = useState("");
+  const [topUpOpen, setTopUpOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const balanceRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cartCount = useCartCount();
@@ -85,10 +84,7 @@ export function Header({ isLoggedIn = false, userName = null }: { isLoggedIn?: b
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
       }
-      if (balanceRef.current && !balanceRef.current.contains(e.target as Node)) {
-        setBalanceOpen(false);
-      }
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
         setSearchFocused(false);
       }
     }
@@ -96,15 +92,7 @@ export function Header({ isLoggedIn = false, userName = null }: { isLoggedIn?: b
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  function handleAddBalance() {
-    const value = parseFloat(addAmount);
-    if (!Number.isFinite(value) || value <= 0) return;
-    addBalance(value);
-    setAddAmount("");
-    setBalanceOpen(false);
-  }
-
-  const initials = userName ? userName.charAt(0).toUpperCase() : "P";
+const initials = userName ? userName.charAt(0).toUpperCase() : "P";
 
   return (
     <header className="sticky top-0 z-50 border-b border-outline-variant/20 bg-surface-container/70 backdrop-blur-xl">
@@ -246,9 +234,9 @@ export function Header({ isLoggedIn = false, userName = null }: { isLoggedIn?: b
           ) : null}
 
           {isLoggedIn && (
-            <div className="relative" ref={balanceRef}>
+            <div className="relative">
               <button
-                onClick={() => setBalanceOpen(!balanceOpen)}
+                onClick={() => setTopUpOpen(true)}
                 className="flex items-center gap-2 rounded-lg bg-surface-container-highest px-3 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-surface-bright"
               >
                 <svg
@@ -267,44 +255,7 @@ export function Header({ isLoggedIn = false, userName = null }: { isLoggedIn?: b
                 </svg>
                 <span className="tabular-nums">${balance.toFixed(2)}</span>
               </button>
-
-              {balanceOpen && (
-                <div className="absolute right-0 mt-2 w-64 rounded-lg border border-outline-variant/20 bg-surface-container-high p-4 shadow-xl">
-                  <p className="mb-3 text-sm font-semibold text-on-surface">Add Funds</p>
-                  <div className="mb-3 flex gap-2">
-                    {[5, 10, 25, 50, 100].map((preset) => (
-                      <button
-                        key={preset}
-                        onClick={() => setAddAmount(String(preset))}
-                        className={`flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${addAmount === String(preset)
-                          ? "bg-primary/20 text-primary"
-                          : "bg-surface-container-highest text-on-surface-variant hover:text-on-surface"
-                          }`}
-                      >
-                        ${preset}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      min="0.01"
-                      step="0.01"
-                      placeholder="Amount"
-                      value={addAmount}
-                      onChange={(e) => setAddAmount(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleAddBalance()}
-                      className="w-full rounded-lg bg-surface-container-highest px-3 py-2 text-sm text-on-surface placeholder:text-on-surface-variant/60 outline-none transition-all focus:ring-1 focus:ring-primary/40"
-                    />
-                    <button
-                      onClick={handleAddBalance}
-                      className="shrink-0 rounded-lg bg-gradient-to-br from-primary to-primary-container px-4 py-2 text-sm font-bold text-on-primary transition-opacity hover:opacity-90"
-                    >
-                      Add
-                    </button>
-                  </div>
-                </div>
-              )}
+              <TopUpModal open={topUpOpen} onClose={() => setTopUpOpen(false)} />
             </div>
           )}
 
