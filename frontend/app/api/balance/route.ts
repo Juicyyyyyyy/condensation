@@ -2,10 +2,11 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 const BACKEND_URL = process.env.BACKEND_URL ?? "http://localhost:8080";
+const AUTH_URL = process.env.API_URL ?? process.env.AUTH_URL ?? "http://localhost:8000";
 
 async function getUserId(token: string): Promise<number | null> {
   try {
-    const res = await fetch(`${BACKEND_URL}/api/user`, {
+    const res = await fetch(`${AUTH_URL}/api/user`, {
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     });
