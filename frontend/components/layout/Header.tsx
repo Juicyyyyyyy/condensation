@@ -319,6 +319,12 @@ const initials = userName ? userName.charAt(0).toUpperCase() : "P";
                       My Profile
                     </a>
                     <a
+                      href="/orders"
+                      className="block px-4 py-2 text-sm text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface"
+                    >
+                      My Orders
+                    </a>
+                    <a
                       href="/settings"
                       className="block px-4 py-2 text-sm text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface"
                     >

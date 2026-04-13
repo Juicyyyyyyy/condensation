@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -59,21 +60,39 @@ export default async function OrdersPage() {
             </Link>
           </div>
         ) : (
-          <div className="rounded-xl border border-outline-variant/20 bg-surface-container">
-            <div className="hidden grid-cols-[auto_1fr_auto] gap-4 border-b border-outline-variant/20 px-6 py-3 text-xs font-semibold uppercase tracking-wider text-on-surface-variant md:grid">
-              <span>Order</span>
-              <span>Key Preview</span>
-              <span />
-            </div>
+          <>
+          <div className="hidden md:grid grid-cols-[3rem_1fr_1fr_auto] gap-x-4 rounded-t-xl border border-outline-variant/20 bg-surface-container px-6 py-3 text-xs font-semibold uppercase tracking-wider text-on-surface-variant">
+            <span>Order</span>
+            <span>Game</span>
+            <span>Key Preview</span>
+            <span />
+          </div>
+          <div className="rounded-xl md:rounded-t-none border border-outline-variant/20 md:border-t-0 bg-surface-container">
             {orders.map((order) => (
               <div
                 key={order.id}
-                className="grid grid-cols-1 gap-2 border-b border-outline-variant/10 px-6 py-4 last:border-b-0 md:grid-cols-[auto_1fr_auto] md:items-center md:gap-4"
+                className="grid grid-cols-1 gap-2 border-b border-outline-variant/10 px-6 py-4 last:border-b-0 md:grid-cols-[3rem_1fr_1fr_auto] md:items-center md:gap-x-4"
               >
                 <span className="text-sm font-medium text-on-surface">
                   #{order.id}
                 </span>
-                <span className="font-mono text-sm text-on-surface-variant">
+                <div className="flex items-center gap-3 min-w-0">
+                  {order.game?.headerImage && (
+                    <div className="relative h-9 w-16 shrink-0 overflow-hidden rounded">
+                      <Image
+                        src={order.game.headerImage}
+                        alt={order.game.name}
+                        fill
+                        className="object-cover"
+                        sizes="64px"
+                      />
+                    </div>
+                  )}
+                  <span className="truncate text-sm font-medium text-on-surface">
+                    {order.game?.name ?? "—"}
+                  </span>
+                </div>
+                <span className="font-mono text-sm text-on-surface-variant md:self-center">
                   {order.key.split("-")[0]}-···
                 </span>
                 <Link
@@ -85,6 +104,7 @@ export default async function OrdersPage() {
               </div>
             ))}
           </div>
+          </>
         )}
 
         <div className="mt-8">
