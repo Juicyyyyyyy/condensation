@@ -25,7 +25,7 @@ const slides: HeroSlideData[] = [
     title: "Nioh 3",
     subtitle:
       "Use both Samurai and Ninja combat styles in the third dark samurai action RPG.",
-    price: 69.99,
+    price: 22.39,
     genres: ["Action", "RPG"],
     ctaLink: "/games/368",
     image:
@@ -38,7 +38,7 @@ const slides: HeroSlideData[] = [
     title: "ELDEN RING",
     subtitle:
       "Rise, Tarnished, and be guided by grace to brandish the power of the Elden Ring.",
-    price: 59.99,
+    price: 34.79,
     genres: ["Action", "RPG"],
     ctaLink: "/games/6",
     image:
@@ -51,9 +51,7 @@ const slides: HeroSlideData[] = [
     title: "Grand Theft Auto V Enhanced",
     subtitle:
       "Experience the blockbuster — now upgraded with stunning visuals for a new generation.",
-    price: 14.99,
-    originalPrice: 29.99,
-    discountPercent: 50,
+    price: 16.49,
     genres: ["Action", "Adventure", "Racing"],
     ctaLink: "/games/29",
     image:
@@ -66,7 +64,7 @@ const slides: HeroSlideData[] = [
     title: "ARK: Survival Ascended",
     subtitle:
       "Reimagined from the ground-up with Unreal Engine 5. Form a tribe, tame & breed hundreds of dinosaurs.",
-    price: 44.99,
+    price: 24.29,
     genres: ["Action", "Adventure", "Survival"],
     ctaLink: "/games/19",
     image:
@@ -79,7 +77,7 @@ const slides: HeroSlideData[] = [
     title: "Resident Evil Requiem",
     subtitle:
       "Requiem for the dead. Nightmare for the living. Prepare to escape death.",
-    price: 69.99,
+    price: 59.49,
     genres: ["Action", "Adventure"],
     ctaLink: "/games/45",
     image:

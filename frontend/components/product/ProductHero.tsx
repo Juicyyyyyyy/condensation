@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createPlayer, videoFeatures } from "@videojs/react";
 import { VideoSkin, Video } from "@videojs/react/video";
 import "@videojs/react/video/skin.css";
@@ -68,6 +68,15 @@ function VideoPlayer({ src, poster }: { src: string; poster: string }) {
 }
 
 export function ProductHero({ game }: { game: BackendGameDetail }) {
+  const [keyCounts, setKeyCounts] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch(`/api/steam/${game.id}/key_counts`)
+      .then((r) => r.json())
+      .then((data) => setKeyCounts(data.key_counts ?? null))
+      .catch(() => {});
+  }, [game.id]);
+
   const media: MediaItem[] = [
     ...(game.movies ?? []).slice(0, 2).map((m) => ({
       kind: "movie" as const,
@@ -235,9 +244,11 @@ export function ProductHero({ game }: { game: BackendGameDetail }) {
                     <span className="text-xl font-headline font-black text-secondary">
                       {formatPrice(finalPrice)}
                     </span>
-                    <span className="text-xs text-on-surface-variant mt-4">
-                      5 keys left in stock
-                    </span>
+                    {keyCounts !== null && (
+                      <span className="text-xs text-on-surface-variant mt-4">
+                        {keyCounts} keys left in stock
+                      </span>
+                    )}
                   </div>
                 </div>
 

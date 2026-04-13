@@ -82,7 +82,7 @@ export function TopUpModal({ open, onClose }: TopUpModalProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-200 flex items-center justify-center mt-[30vh]">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
@@ -114,11 +114,10 @@ export function TopUpModal({ open, onClose }: TopUpModalProps) {
                 <button
                   key={preset}
                   onClick={() => setAmount(String(preset))}
-                  className={`flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
-                    amount === String(preset)
-                      ? "bg-primary/20 text-primary"
-                      : "bg-surface-container-highest text-on-surface-variant hover:text-on-surface"
-                  }`}
+                  className={`flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${amount === String(preset)
+                    ? "bg-primary/20 text-primary"
+                    : "bg-surface-container-highest text-on-surface-variant hover:text-on-surface"
+                    }`}
                 >
                   ${preset}
                 </button>

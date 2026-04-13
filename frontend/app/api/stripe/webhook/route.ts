@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      const res = await fetch(`${BACKEND_URL}/balance`, {
+      const res = await fetch(`${BACKEND_URL}/api/balance`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userid, amount, payment_intent_id }),
