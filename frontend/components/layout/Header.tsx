@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCartCount } from "@/lib/cart-store";
-import { useBalance } from "@/lib/balance-store";
+import { useBalance, useBalanceLoaded, fetchBalance } from "@/lib/balance-store";
 import { TopUpModal } from "@/components/wallet/TopUpModal";
 import type { Game } from "@/lib/types";
 import { formatCents } from "@/lib/format-price";
@@ -34,6 +34,11 @@ export function Header({ isLoggedIn = false, userName = null }: { isLoggedIn?: b
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cartCount = useCartCount();
   const balance = useBalance();
+  const balanceLoaded = useBalanceLoaded();
+
+  useEffect(() => {
+    if (isLoggedIn) fetchBalance();
+  }, [isLoggedIn]);
 
   const showPreview = searchFocused && searchQuery.trim().length > 0;
 
@@ -253,7 +258,11 @@ const initials = userName ? userName.charAt(0).toUpperCase() : "P";
                   <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2.5" />
                   <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4" />
                 </svg>
-                <span className="tabular-nums">${balance.toFixed(2)}</span>
+                {balanceLoaded ? (
+                  <span className="tabular-nums">${balance.toFixed(2)}</span>
+                ) : (
+                  <span className="inline-block h-3.5 w-12 animate-pulse rounded bg-on-surface/10" />
+                )}
               </button>
               <TopUpModal open={topUpOpen} onClose={() => setTopUpOpen(false)} />
             </div>
