@@ -41,21 +41,9 @@ export function TopUpModal({ open, onClose }: TopUpModalProps) {
     }
   }, [open]);
 
-  const handleClose = useCallback(async () => {
-    if (state.type === "success") {
-      // Re-fetch balance after successful payment
-      try {
-        const res = await fetch("/api/balance");
-        if (res.ok) {
-          const data = await res.json();
-          setBalance(data.balance);
-        }
-      } catch {
-        // Ignore — balance will sync on next load
-      }
-    }
+  const handleClose = useCallback(() => {
     onClose();
-  }, [state.type, onClose]);
+  }, [onClose]);
 
   async function handleCreateIntent() {
     const dollars = parseFloat(amount);
@@ -169,15 +157,27 @@ export function TopUpModal({ open, onClose }: TopUpModalProps) {
               }
               onSuccess={async () => {
                 setState({ type: "success" });
-                try {
-                  const res = await fetch("/api/balance");
-                  if (res.ok) {
-                    const data = await res.json();
-                    setBalance(data.balance);
-                  }
-                } catch {
-                  // balance will sync on close
-                }
+                // Poll until balance increases (webhook is async)
+                const previousBalance = await fetch("/api/balance")
+                  .then((r) => r.ok ? r.json() : null)
+                  .then((d) => (d?.balance ?? null))
+                  .catch(() => null);
+                const deadline = Date.now() + 15_000;
+                const poll = async () => {
+                  if (Date.now() > deadline) return;
+                  try {
+                    const res = await fetch("/api/balance");
+                    if (res.ok) {
+                      const data = await res.json();
+                      if (previousBalance === null || data.balance !== previousBalance) {
+                        setBalance(data.balance);
+                        return;
+                      }
+                    }
+                  } catch { /* ignore */ }
+                  setTimeout(poll, 1500);
+                };
+                poll();
               }}
               onError={(msg) => setState({ type: "error", message: msg })}
             />

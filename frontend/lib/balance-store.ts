@@ -45,16 +45,20 @@ function writeBalance(amount: number) {
 
 function subscribe(listener: () => void) {
   if (typeof window === "undefined") return () => {};
-  const handler = () => {
+  const onWrite = () => {
+    ensureCache();
+    listener();
+  };
+  const onStorage = () => {
     const before = cachedRaw;
     ensureCache();
     if (before !== cachedRaw) listener();
   };
-  window.addEventListener(EVENT_NAME, handler);
-  window.addEventListener("storage", handler);
+  window.addEventListener(EVENT_NAME, onWrite);
+  window.addEventListener("storage", onStorage);
   return () => {
-    window.removeEventListener(EVENT_NAME, handler);
-    window.removeEventListener("storage", handler);
+    window.removeEventListener(EVENT_NAME, onWrite);
+    window.removeEventListener("storage", onStorage);
   };
 }
 
