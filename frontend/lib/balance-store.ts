@@ -7,6 +7,7 @@ const EVENT_NAME = "condensation:balance";
 
 let cachedRaw: string | null | undefined = undefined;
 let cachedBalance = 0;
+let balanceLoaded = false;
 
 function readRaw(): string | null {
   if (typeof window === "undefined") return null;
@@ -38,6 +39,7 @@ function writeBalance(amount: number) {
   window.localStorage.setItem(STORAGE_KEY, raw);
   cachedRaw = raw;
   cachedBalance = clamped;
+  balanceLoaded = true;
   window.dispatchEvent(new Event(EVENT_NAME));
 }
 
@@ -67,4 +69,23 @@ export function setBalance(cents: number) {
 
 export function useBalance(): number {
   return useSyncExternalStore(subscribe, getBalance, () => 0);
+}
+
+function readLoaded(): boolean {
+  return balanceLoaded;
+}
+
+export function useBalanceLoaded(): boolean {
+  return useSyncExternalStore(subscribe, readLoaded, () => false);
+}
+
+export async function fetchBalance(): Promise<void> {
+  try {
+    const res = await fetch("/api/balance");
+    if (!res.ok) return;
+    const data = await res.json();
+    if (typeof data.balance === "number") setBalance(data.balance);
+  } catch {
+    // Silently fail — skeleton persists
+  }
 }
