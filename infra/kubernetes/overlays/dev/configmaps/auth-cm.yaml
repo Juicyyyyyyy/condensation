@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-cm
+data:
+  APP_NAME: "laravel"
+  APP_ENV: "local"
+  APP_DEBUG: true
+  APP_URL: "https://dev.condensation.corentindupaigne.com"
+  FRONTEND_URL: "https://dev.condensation.corentindupaigne.com"
+  LOG_CHANNEL: "stack"
+  LOG_LEVEL: "debug"
+  DB_CONNECTION: "pgsql"
+  DB_HOST: "postgres"
+  DB_PORT: 5432

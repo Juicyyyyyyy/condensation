@@ -20,6 +20,11 @@ spec:
       containers:
       - image: ghcr.io/corentin-dupaigne/fullstack_project/auth
         name: condensation-auth
+        envFrom:
+          - configMapRef:
+              name: auth-cm
+          - secretRef:
+              name: auth-secret
         imagePullPolicy: Always
         resources: {}
 status: {}

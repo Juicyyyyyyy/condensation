@@ -17,6 +17,9 @@ spec:
     spec:
       containers:
       - image: postgres
+        envFrom:
+          - secretRef:
+              name: postgres-secret
         name: postgres
         resources: {}
 status: {}
