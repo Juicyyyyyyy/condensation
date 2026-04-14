@@ -11,15 +11,21 @@ import type { CartItem } from "@/lib/cart-store";
 export function OrderSummaryCard({
   subtotal,
   items,
+  isLoggedIn = false,
 }: {
   subtotal: number;
   items: CartItem[];
+  isLoggedIn?: boolean;
 }) {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [showTopUp, setShowTopUp] = useState(false);
 
   async function handleCheckout() {
+    if (!isLoggedIn) {
+      router.push("/api/auth/login");
+      return;
+    }
     setStatus("loading");
     try {
       const res = await fetch("/api/orders", {

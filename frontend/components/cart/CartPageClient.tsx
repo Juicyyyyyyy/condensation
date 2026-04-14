@@ -7,7 +7,7 @@ import { OrderSummaryCard } from "@/components/cart/OrderSummaryCard";
 import { clearCart, getCartSubtotal, useCartState } from "@/lib/cart-store";
 import type { Game } from "@/lib/types";
 
-export function CartPageClient({ recommendedGames }: { recommendedGames: Game[] }) {
+export function CartPageClient({ recommendedGames, isLoggedIn = false }: { recommendedGames: Game[]; isLoggedIn?: boolean }) {
   const cart = useCartState();
 
   const itemCount = cart.items.reduce((sum, it) => sum + it.qty, 0);
@@ -50,7 +50,7 @@ export function CartPageClient({ recommendedGames }: { recommendedGames: Game[] 
         </div>
 
         <div className="lg:col-span-3">
-          <OrderSummaryCard subtotal={subtotal} items={cart.items} />
+          <OrderSummaryCard subtotal={subtotal} items={cart.items} isLoggedIn={isLoggedIn} />
         </div>
       </div>
 
