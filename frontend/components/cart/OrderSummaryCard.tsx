@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { formatPrice } from "@/lib/format-price";
 import { clearCart } from "@/lib/cart-store";
 import { fetchBalance } from "@/lib/balance-store";
-import { TopUpModal } from "@/components/wallet/TopUpModal";
+import { PaymentMethodModal } from "@/components/checkout/PaymentMethodModal";
 import type { CartItem } from "@/lib/cart-store";
 
 export function OrderSummaryCard({
@@ -18,14 +18,15 @@ export function OrderSummaryCard({
   isLoggedIn?: boolean;
 }) {
   const router = useRouter();
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
-  const [showTopUp, setShowTopUp] = useState(false);
 
-  async function handleCheckout() {
+  async function handleBalancePay() {
     if (!isLoggedIn) {
       router.push("/api/auth/login");
       return;
     }
+    setShowPaymentModal(false);
     setStatus("loading");
     try {
       const res = await fetch("/api/orders", {
@@ -42,7 +43,34 @@ export function OrderSummaryCard({
       }
       clearCart();
       await fetchBalance();
-      router.push("/orders");
+      router.push("/orders?purchase=success");
+    } catch {
+      setStatus("error");
+    }
+  }
+
+  async function handleStripePay() {
+    if (!isLoggedIn) {
+      router.push("/api/auth/login");
+      return;
+    }
+    setShowPaymentModal(false);
+    setStatus("loading");
+    try {
+      const res = await fetch("/api/stripe/game-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          games: items.map((i) => ({
+            gameIds: parseInt(i.id),
+            quantity: i.qty,
+          })),
+          returnUrl: `${window.location.origin}/orders?purchase=success`,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error();
+      window.location.href = data.url;
     } catch {
       setStatus("error");
     }
@@ -80,7 +108,7 @@ export function OrderSummaryCard({
 
         <button
           type="button"
-          onClick={handleCheckout}
+          onClick={() => setShowPaymentModal(true)}
           disabled={status === "loading"}
           className="w-full rounded-xl bg-gradient-to-br from-secondary to-secondary-dim py-5 font-headline text-lg font-black uppercase tracking-widest text-on-secondary shadow-[0_0_30px_rgba(161,250,255,0.18)] transition-all duration-150 hover:shadow-[0_0_45px_rgba(161,250,255,0.26)] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
         >
@@ -94,17 +122,30 @@ export function OrderSummaryCard({
               type="button"
               onClick={() => {
                 setStatus("idle");
-                setShowTopUp(true);
+                setShowPaymentModal(true);
               }}
               className="underline text-primary hover:text-primary/80"
             >
-              Top up your wallet →
+              Choose payment method →
             </button>
           </p>
         )}
       </div>
 
-      <TopUpModal open={showTopUp} onClose={() => setShowTopUp(false)} />
+      <PaymentMethodModal
+        id="order-summary-payment-modal"
+        open={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        total={subtotal}
+        totalCents={Math.round(subtotal * 100)}
+        lineItems={items.map((i) => ({
+          name: i.title,
+          priceCents: Math.round(i.price * 100),
+          quantity: i.qty,
+        }))}
+        onBalancePay={handleBalancePay}
+        onStripePay={handleStripePay}
+      />
     </div>
   );
 }

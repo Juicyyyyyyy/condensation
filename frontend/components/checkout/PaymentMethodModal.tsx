@@ -1,26 +1,24 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { fetchBalance, getBalance as readBalance } from "@/lib/balance-store";
+import { fetchBalance } from "@/lib/balance-store";
 import { formatPrice } from "@/lib/format-price";
 
 type ModalState = "idle" | "loading" | "error";
-
-interface LineItem {
-  name: string;
-  priceCents: number;
-  quantity: number;
-}
 
 interface PaymentMethodModalProps {
   id: string;
   open: boolean;
   onClose: () => void;
-  total: number;
-  totalCents: number;
-  lineItems: LineItem[];
-  onBalancePay: () => void;
-  onStripePay: () => void;
+  total: number;               // in dollars — for display
+  totalCents: number;         // in cents — used for balance shortfall check
+  lineItems: Array<{
+    name: string;
+    priceCents: number;
+    quantity: number;
+  }>;
+  onBalancePay: () => void;   // caller fires when "Pay from Balance" confirmed
+  onStripePay: () => void;     // caller fires when "Pay with Stripe" confirmed
 }
 
 export function PaymentMethodModal({
@@ -34,29 +32,26 @@ export function PaymentMethodModal({
   onStripePay,
 }: PaymentMethodModalProps) {
   const [state, setState] = useState<ModalState>("idle");
-  const [balance, setBalance] = useState<number>(0);
+  const [balance, setBalance] = useState<number>(0);         // in dollars
   const [balanceLoading, setBalanceLoading] = useState(false);
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const balanceShortfall = balance * 100 < totalCents;
 
+  // Fetch balance whenever modal opens
   useEffect(() => {
-    if (!open) {
-      setState("idle");
-      return;
-    }
-    let mounted = true;
+    if (!open) return;
     setBalanceLoading(true);
     setState("idle");
     fetchBalance()
-      .then(() => { if (mounted) setBalance(readBalance()); })
-      .finally(() => { if (mounted) setBalanceLoading(false); });
-    return () => { mounted = false; };
+      .then(() => setBalance(Number(window.localStorage.getItem("condensation.balance.v1") ?? "0")))
+      .finally(() => setBalanceLoading(false));
   }, [open]);
 
+  // Focus trap: focus close button when modal opens
   useEffect(() => {
-    if (open && dialogRef.current) {
-      dialogRef.current.focus();
+    if (open && closeButtonRef.current) {
+      closeButtonRef.current.focus();
     }
   }, [open]);
 
@@ -68,34 +63,40 @@ export function PaymentMethodModal({
   );
 
   useEffect(() => {
-    if (!open) return;
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
+    if (open) {
+      document.addEventListener("keydown", handleEscape);
+      return () => document.removeEventListener("keydown", handleEscape);
+    }
   }, [open, handleEscape]);
 
   if (!open) return null;
 
+  const stripeCardId = `${id}-stripe`;
+  const balanceCardId = `${id}-balance`;
   const titleId = `${id}-title`;
   const descId = `${id}-desc`;
   const shortfallMsgId = `${id}-shortfall`;
 
   return (
     <div className="fixed inset-0 z-[100]" role="presentation">
+      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="relative h-full flex items-start justify-center py-8 px-4">
+
+      {/* Scrollable container */}
+      <div className="relative flex min-h-full items-start justify-center py-8 px-4">
+        {/* Modal panel */}
         <div
-          ref={dialogRef}
           role="dialog"
           aria-modal="true"
           aria-labelledby={titleId}
           aria-describedby={descId}
-          tabIndex={-1}
           className="relative w-full max-w-md rounded-2xl border border-outline-variant/20 bg-surface-container-high p-6 shadow-2xl"
         >
+          {/* Header */}
           <div className="mb-6 flex items-center justify-between">
             <h2
               id={titleId}
@@ -104,6 +105,7 @@ export function PaymentMethodModal({
               Choose Payment Method
             </h2>
             <button
+              ref={closeButtonRef}
               type="button"
               onClick={onClose}
               aria-label="Close payment method modal"
@@ -115,23 +117,39 @@ export function PaymentMethodModal({
             </button>
           </div>
 
+          {/* Total */}
           <p id={descId} className="mb-6 text-sm text-on-surface-variant">
+            <span className="sr-only">Total: </span>
             Total:{" "}
-            <span className="font-headline font-bold text-on-surface">
+            <span aria-label={`${total} dollars`} className="font-headline font-bold text-on-surface">
               {formatPrice(total)}
             </span>
           </p>
 
+          {/* Payment option cards */}
           <div className="space-y-3" data-testid="payment-options">
-            <div
+            {/* Balance card */}
+            <label
+              id={balanceCardId}
+              htmlFor={`${id}-balance-input`}
               className={[
-                "flex flex-col gap-2 rounded-xl border p-4 transition-colors",
+                "flex cursor-pointer flex-col gap-2 rounded-xl border p-4 transition-colors",
                 balanceShortfall
-                  ? "border-error/50 bg-error/5"
-                  : "border-outline-variant/20 bg-surface-container-highest",
+                  ? "border-error/50 bg-error/5 pointer-events-none select-none"
+                  : "border-outline-variant/20 bg-surface-container-highest hover:border-secondary/30",
               ].join(" ")}
             >
               <div className="flex items-center gap-3">
+                <input
+                  type="radio"
+                  name="payment-method"
+                  id={`${id}-balance-input`}
+                  value="balance"
+                  defaultChecked
+                  className="accent-secondary"
+                  aria-describedby={balanceShortfall ? shortfallMsgId : undefined}
+                  aria-disabled={balanceShortfall}
+                />
                 <span className="font-headline font-bold text-on-surface">
                   Pay from Balance
                 </span>
@@ -144,7 +162,7 @@ export function PaymentMethodModal({
               </div>
 
               {balanceShortfall && (
-                <p id={shortfallMsgId} className="flex items-center gap-1.5 text-xs text-error">
+                <p id={shortfallMsgId} className="ml-7 flex items-center gap-1.5 text-xs text-error">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                     <line x1="12" y1="9" x2="12" y2="13" />
@@ -162,7 +180,7 @@ export function PaymentMethodModal({
                 className={[
                   "ml-auto mt-1 min-h-11 rounded-lg px-6 py-2.5 font-headline text-sm font-bold uppercase tracking-wider transition-all",
                   balanceShortfall
-                    ? "cursor-not-allowed bg-surface-container text-on-surface-variant"
+                    ? "bg-surface-container text-on-surface-variant cursor-not-allowed"
                     : "bg-linear-to-br from-secondary to-secondary-dim text-on-secondary hover:opacity-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/40",
                 ].join(" ")}
                 onClick={() => {
@@ -174,17 +192,31 @@ export function PaymentMethodModal({
               >
                 Pay with Balance
               </button>
-            </div>
+            </label>
 
-            <div className="flex flex-col gap-2 rounded-xl border border-outline-variant/20 bg-surface-container-highest p-4 transition-colors hover:border-primary/30">
+            {/* Stripe card */}
+            <label
+              id={stripeCardId}
+              htmlFor={`${id}-stripe-input`}
+              className="flex cursor-pointer flex-col gap-2 rounded-xl border border-outline-variant/20 bg-surface-container-highest p-4 transition-colors hover:border-primary/30"
+            >
               <div className="flex items-center gap-3">
+                <input
+                  type="radio"
+                  name="payment-method"
+                  id={`${id}-stripe-input`}
+                  value="stripe"
+                  className="accent-primary"
+                />
                 <span className="font-headline font-bold text-on-surface">
                   Pay with Card (Stripe)
                 </span>
               </div>
-              <p className="text-xs text-on-surface-variant">
+
+              <p className="ml-7 text-xs text-on-surface-variant">
                 Visa, Mastercard, and more
               </p>
+
               <button
                 type="button"
                 disabled={state === "loading"}
@@ -198,15 +230,17 @@ export function PaymentMethodModal({
               >
                 Pay with Card
               </button>
-            </div>
+            </label>
           </div>
 
+          {/* Error */}
           {state === "error" && (
             <p className="mt-3 text-center text-sm text-error" role="alert">
               Something went wrong. Please try again.
             </p>
           )}
 
+          {/* Cancel */}
           <button
             type="button"
             onClick={onClose}
