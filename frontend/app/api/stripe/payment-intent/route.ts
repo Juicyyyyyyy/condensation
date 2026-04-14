@@ -2,7 +2,6 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const AUTH_URL = process.env.API_URL ?? process.env.AUTH_URL ?? "http://localhost:8000";
 
 async function getUserId(token: string): Promise<number | null> {
@@ -20,6 +19,7 @@ async function getUserId(token: string): Promise<number | null> {
 }
 
 export async function POST(req: NextRequest) {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
   const cookieStore = await cookies();
   const token = cookieStore.get("access_token")?.value;
   if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
