@@ -12,7 +12,6 @@ on:
 jobs:
   build-push-backend:
     name: Build & push backend
-    if: ${{ github.event_name == 'workflow_dispatch' || contains(toJson(github.event.commits.*.modified + github.event.commits.*.added), 'backend/') }}
     permissions:
       contents: read
       packages: write
@@ -26,7 +25,6 @@ jobs:
 
   build-push-postgres-game:
     name: Build & push postgres-game
-    if: ${{ github.event_name == 'workflow_dispatch' || contains(toJson(github.event.commits.*.modified + github.event.commits.*.added), 'scripts/') }}
     permissions:
       contents: read
       packages: write
