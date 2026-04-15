@@ -17,9 +17,17 @@ spec:
     spec:
       containers:
       - image: postgres
+        volumeMounts:
+        - name: postgres-vol
+          mountPath: /var/lib/postgresql/data
         envFrom:
           - secretRef:
               name: postgres-secret
         name: postgres
         resources: {}
+      volumes:
+      - name: postgres-vol
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+
 status: {}

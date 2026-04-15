@@ -27,4 +27,11 @@ spec:
               name: auth-secret
         imagePullPolicy: Always
         resources: {}
+        volumeMounts:
+        - name: auth-storage
+          mountPath: /var/www/html/storage
+      volumes:
+      - name: auth-storage
+        persistentVolumeClaim:
+          claimName: auth-pvc
 status: {}

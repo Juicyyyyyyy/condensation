@@ -5,3 +5,5 @@ resources:
   - services/auth-svc.yaml
   - services/frontend-svc.yaml
   - services/postgres-svc.yaml
+  - pvcs/postgres-pvc.yaml
+  - pvcs/auth-pvc.yaml
