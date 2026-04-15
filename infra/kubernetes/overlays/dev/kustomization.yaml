@@ -3,6 +3,10 @@ resources:
   - namespace.yaml
   - http-route.yaml
   - ../../base
+  - secrets/postgres-secret.yaml
+  - secrets/auth-secret.yaml
+  - configmaps/frontend-cm.yaml
+  - configmaps/auth-cm.yaml
 images:
   - name: ghcr.io/corentin-dupaigne/fullstack_project/auth
     newTag: dev
