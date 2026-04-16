@@ -1,20 +1,21 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { clearCart } from "@/lib/cart-store";
 import { PurchaseSuccessToast } from "./PurchaseSuccessToast";
 
 export function OrdersClientToast() {
   const searchParams = useSearchParams();
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(() => searchParams.get("purchase") === "success");
+  const clearedRef = useRef(false);
 
   useEffect(() => {
-    if (searchParams.get("purchase") === "success") {
-      setVisible(true);
+    if (visible && !clearedRef.current) {
+      clearedRef.current = true;
       clearCart();
     }
-  }, [searchParams]);
+  }, [visible]);
 
   if (!visible) return null;
 

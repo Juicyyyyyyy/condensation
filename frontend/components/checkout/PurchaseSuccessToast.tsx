@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 interface PurchaseSuccessToastProps {
   visible: boolean;
@@ -8,23 +8,15 @@ interface PurchaseSuccessToastProps {
 }
 
 export function PurchaseSuccessToast({ visible, onDismiss }: PurchaseSuccessToastProps) {
-  const [mounted, setMounted] = useState(false);
-
   useEffect(() => {
-    if (visible) setMounted(true);
-  }, [visible]);
-
-  useEffect(() => {
-    if (!mounted) return;
+    if (!visible) return;
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReducedMotion) {
-      return;
-    }
+    if (prefersReducedMotion) return;
     const timer = setTimeout(onDismiss, 4000);
     return () => clearTimeout(timer);
-  }, [mounted, onDismiss]);
+  }, [visible, onDismiss]);
 
-  if (!mounted || !visible) return null;
+  if (!visible) return null;
 
   return (
     <div

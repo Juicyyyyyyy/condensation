@@ -37,13 +37,20 @@ export function PaymentMethodModal({
   const [topUpOpen, setTopUpOpen] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
+  const [prevOpen, setPrevOpen] = useState(false);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) {
+      setBalanceLoading(true);
+      setState("idle");
+    }
+  }
+
   const balanceShortfall = balance * 100 < totalCents;
 
   // Fetch balance whenever modal opens
   useEffect(() => {
     if (!open) return;
-    setBalanceLoading(true);
-    setState("idle");
     fetchBalance()
       .then(() => setBalance(Number(window.localStorage.getItem("condensation.balance.v1") ?? "0")))
       .finally(() => setBalanceLoading(false));

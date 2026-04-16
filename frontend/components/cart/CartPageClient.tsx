@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { GameCard } from "@/components/shared/GameCard";
 import { CartItemRow } from "@/components/cart/CartItemRow";
 import { EmptyCartState } from "@/components/cart/EmptyCartState";
@@ -9,8 +9,7 @@ import { clearCart, getCartSubtotal, useCartState } from "@/lib/cart-store";
 import type { Game } from "@/lib/types";
 
 export function CartPageClient({ recommendedGames, isLoggedIn = false }: { recommendedGames: Game[]; isLoggedIn?: boolean }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
 
   const cart = useCartState();
 
