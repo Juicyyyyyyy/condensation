@@ -11,7 +11,7 @@
 | Config runtime | `E2E_BASE_URL` (défaut `http://localhost:4000`), `E2E_TIMEOUT` ms (défaut `15000`), `E2E_TEST_EMAIL`/`E2E_TEST_PASSWORD` |
 | Config fichier | `.runsettings` — `ExpectTimeout=5000`, `NUnit.DefaultTimeout=20000`, `Headless=true` |
 
-Résultat de la dernière exécution complète : **163 réussis · 0 échec · 1 conditionnellement ignoré · 40 min 43 s**.
+Résultat de la dernière exécution complète : **168 réussis · 0 échec · 1 conditionnellement ignoré · ~42 min**.
 
 ---
 
@@ -30,6 +30,7 @@ e2e-tests/
 └── Tests/
     ├── BaseTest.cs                     # PageTest + LoginAsync, LogoutAsync, GoToAsync
     ├── AuthenticatedBaseTest.cs        # BaseTest + SetUp qui fait LoginAsync
+    ├── UserJourneyTests.cs             # Parcours utilisateur de bout en bout (anonyme + auth)
     └── <une fixture par feature>.cs
 ```
 
@@ -118,7 +119,9 @@ Le HeroCarousel et le menu utilisateur sont intégralement testés via ARIA.
 | `OrderTests` | 6 | ✅ | Heading, accès depuis user menu, empty OR populated |
 | `ProfileTests` | 14 | ✅ | Header profil, stats, tabs (Overview/Badges/Order History), section Steam |
 | `SettingsTests` | 21 | ✅ | Account, Wallet (incl. modal Top Up + validation min 1 $), Linked Accounts, Notifications, Privacy |
-| **TOTAL** | **164** | | 1 test parfois ignoré si backend sans résultats → **163 effectivement exécutés** |
+| `UserJourneyTests` | 3 | — | Parcours anonymes bout-en-bout : catalogue → produit, recherche → panier, gestion quantité + clear |
+| `AuthenticatedUserJourneyTests` | 2 | ✅ | Login → cart → modale paiement ; menu utilisateur → profile → orders → logout |
+| **TOTAL** | **169** | | 1 test parfois ignoré si backend sans résultats → **168 effectivement exécutés** |
 
 ### Répartition fonctionnelle
 
@@ -131,7 +134,25 @@ Page produit ...................... 14 tests   (ProductTests)
 Recherche ......................... 10 tests   (SearchTests)
 Panier & checkout ................. 23 tests   (Cart + Checkout)
 Espace utilisateur ................ 41 tests   (Profile + Orders + Settings)
+Parcours utilisateur complet ......  5 tests   (UserJourney + AuthenticatedUserJourney)
 ```
+
+### Parcours utilisateur bout-en-bout
+
+Les fixtures `UserJourneyTests` et `AuthenticatedUserJourneyTests` enchaînent plusieurs pages en une même scénarisation pour garantir que les chemins critiques restent connectés.
+
+| Test | Étapes |
+|---|---|
+| `Journey_AnonymousVisitor_BrowsesCatalogAndOpensProduct` | Accueil → `/games` → 1ʳᵉ fiche produit (titre + Add to Cart visibles) |
+| `Journey_AnonymousVisitor_SearchesAndAddsGameToCart` | Slug extrait du catalogue → recherche via header → résultat → Add to Cart → `/cart` (≥ 1 item) |
+| `Journey_AnonymousVisitor_ManagesCartQuantityThenEmptiesCart` | Ajout → incrément quantité (+1) → Clear cart → empty state |
+| `Journey_LoggedInUser_AddsGameToCartAndReachesPaymentModal` | Login → catalogue → ajout → panier → Proceed to Checkout → modale (Balance + Stripe) → Cancel |
+| `Journey_LoggedInUser_VisitsProfileOrdersThenLogsOut` | Menu user → `/profile` (Member since visible) → `/orders` (heading) → Logout |
+
+Choix de conception :
+- Le terme de recherche provient du **premier slug du catalogue** (pas d'hypothèse sur le seed), ce qui évite l'`Inconclusive`.
+- Les sélecteurs du dropdown utilisateur utilisent `href='/profile'` / `href='/orders'` plutôt que le texte visible — plus stable et cohérent avec `OrderTests`.
+- Les transitions sensibles (après login, après ajout panier) passent par `GoToAsync` direct pour réduire la flakiness liée à l'hydratation Next.js.
 
 ---
 
@@ -179,10 +200,19 @@ curl -o /dev/null -w "%{http_code}\n" http://localhost:8080/api/games
 ```bash
 cd e2e-tests
 
-dotnet test                                                   # suite complète (~40 min)
+dotnet test                                                   # suite complète (~42 min)
 dotnet test --filter "FullyQualifiedName~CartTests"           # une fixture
 dotnet test --filter "Name=HomePage_ShouldLoadSuccessfully"   # un test
 dotnet test --logger "console;verbosity=detailed"             # logs par test
+
+# Uniquement les parcours utilisateur (5 tests, ~1 min 20 s)
+# Les deux fixtures sont dans des classes distinctes — le filtre ci-dessous les cible ensemble :
+dotnet test --filter "FullyQualifiedName~UserJourneyTests|FullyQualifiedName~AuthenticatedUserJourneyTests"
+
+# Variantes plus granulaires
+dotnet test --filter "FullyQualifiedName~UserJourneyTests"              # 3 parcours anonymes
+dotnet test --filter "FullyQualifiedName~AuthenticatedUserJourneyTests" # 2 parcours authentifiés
+dotnet test --filter "Name~Journey_LoggedInUser"                        # uniquement les parcours loggés
 
 E2E_TIMEOUT=20000 E2E_BASE_URL=http://localhost:4000 dotnet test
 ```
