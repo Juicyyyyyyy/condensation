@@ -52,6 +52,11 @@ Quatre façons, de la plus simple à la plus expressive :
 La syntaxe complète de `--filter` (opérateurs `&`, `|`, `!`, `~`, `=`, `!=`) est disponible via `-f`. Quelques exemples :
 
 ```bash
+# Tous les parcours utilisateur (5 tests, anonymes + authentifiés fusionnés dans une seule fixture)
+./run-e2e-with-report.sh --class UserJourneyTests
+./run-e2e-with-report.sh --name Journey_AnonymousVisitor   # juste les 3 anonymes
+./run-e2e-with-report.sh --name Journey_LoggedInUser       # juste les 2 authentifiés
+
 # Plusieurs classes
 ./run-e2e-with-report.sh -f "FullyQualifiedName~CartTests|FullyQualifiedName~CheckoutTests"
 
@@ -117,7 +122,7 @@ Le script abaisse ces timeouts **par défaut** pour échouer vite. Pour ajuster 
 | `HEADED` | `0` | `1` = navigateur visible (équivalent `--headed`) |
 | `FAST_FAIL` | `1` | `0` = désactive le fast-fail (équivalent `--no-fast-fail`) |
 | `E2E_BASE_URL` | `http://localhost:4000` | URL de base côté frontend pour Playwright |
-| `E2E_TIMEOUT` | `30000` | timeout Playwright par défaut (ms) |
+| `E2E_TIMEOUT` | `30000` / `8000` si fast-fail | timeout Playwright des actions & navigations (ms). Écrasé quand `FAST_FAIL=1`. |
 
 ## Recettes courantes
 
@@ -144,6 +149,15 @@ SKIP_SERVICES=1 ./run-e2e-with-report.sh --class CartTests  # ré-exécute sans 
 
 ```bash
 ./run-e2e-with-report.sh --no-fast-fail
+```
+
+**Auth qui renvoie 500 "Unable to read key from file"** — les clés Passport embarquées dans l'image sont invalides. Le `.dockerignore` d'`authentication/` les exclut désormais ; pour repartir propre :
+
+```bash
+sudo rm authentication/storage/oauth-*.key   # si fichiers root:root
+cd ..
+docker compose down -v                        # wipe postgres auth_db (tokens obsolètes)
+docker compose up -d --build auth postgres    # entrypoint régénère les clés
 ```
 
 Puis ouvrir `TestResults/report-latest.html` : les échecs sont affichés en premier dans chaque fixture, avec message d'erreur et stack trace dépliables.

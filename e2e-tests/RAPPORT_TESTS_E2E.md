@@ -175,29 +175,27 @@ Choix de conception :
 
 ## Lancer les tests
 
-### Prérequis
+### Orchestrateur recommandé : `run-e2e-with-report.sh`
+
+```bash
+cd e2e-tests
+./run-e2e-with-report.sh                       # services + tests + rapport HTML
+./run-e2e-with-report.sh --class UserJourneyTests     # une fixture
+./run-e2e-with-report.sh --headed --slow-mo 250       # debug visuel
+./run-e2e-with-report.sh --no-fast-fail               # cold start (Next.js pas encore compilé)
+```
+
+Le script orchestre `docker compose up -d` (postgres, postgres-game, kafka, auth, backend, frontend), attend les services, seed l'utilisateur de test, lance `dotnet test` avec fast-fail 8 s activé par défaut, puis convertit le TRX en rapport HTML (`TestResults/report-latest.html`). Options complètes et recettes : voir `RUN_E2E.md`.
+
+### Exécution manuelle (sans le script)
 
 ```bash
 # Depuis la racine du repo
 docker compose up -d auth frontend backend postgres postgres-game kafka
+docker exec condensation-auth-1 php artisan db:seed --force   # seed du user de test
 
-# Seed du user de test si absent (test@example.com / password)
-docker exec condensation-auth-1 php artisan db:seed --force
-```
-
-Vérification rapide :
-```bash
-curl -o /dev/null -w "%{http_code}\n" http://localhost:4000
-curl -o /dev/null -w "%{http_code}\n" http://localhost:8000
-curl -o /dev/null -w "%{http_code}\n" http://localhost:8080/api/games
-```
-
-### Exécution locale
-
-```bash
 cd e2e-tests
-
-dotnet test                                                   # suite complète (~42 min)
+dotnet test                                                   # suite complète
 dotnet test --filter "FullyQualifiedName~CartTests"           # une fixture
 dotnet test --filter "Name=HomePage_ShouldLoadSuccessfully"   # un test
 dotnet test --logger "console;verbosity=detailed"             # logs par test
@@ -208,24 +206,28 @@ dotnet test --filter "FullyQualifiedName~UserJourneyTests"
 # Variantes plus granulaires
 dotnet test --filter "Name~Journey_AnonymousVisitor"    # 3 parcours anonymes
 dotnet test --filter "Name~Journey_LoggedInUser"        # 2 parcours authentifiés
-
-E2E_TIMEOUT=20000 E2E_BASE_URL=http://localhost:4000 dotnet test
 ```
 
-### Exécution en conteneur (CI)
+Vérification rapide des services :
+```bash
+curl -o /dev/null -w "%{http_code}\n" http://localhost:4000
+curl -o /dev/null -w "%{http_code}\n" http://localhost:8000
+curl -o /dev/null -w "%{http_code}\n" http://localhost:8080/api/games
+```
+
+### Exécution en conteneur (CI héritée)
 
 ```bash
 ./e2e-tests/run-tests.sh
 ```
 
-Le script vérifie le seed puis lance `docker compose up --build --abort-on-container-exit` avec le profil `e2e`. Le `Dockerfile` installe Chromium avec `--with-deps` et utilise `-c Release`.
+Script historique : vérifie le seed puis lance `docker compose up --build --abort-on-container-exit` avec le profil `e2e`. Le `Dockerfile` installe Chromium avec `--with-deps` et utilise `-c Release`. Ne génère pas de rapport HTML — préférer `run-e2e-with-report.sh`.
 
 ### Mode graphique (debug)
 
-Éditer `.runsettings` :
-```xml
-<Headless>false</Headless>
-```
+Au choix :
+- passer `--headed` (et éventuellement `--slow-mo <ms>`) à `run-e2e-with-report.sh`
+- ou éditer `.runsettings` : `<Headless>false</Headless>`
 
 ---
 
@@ -237,6 +239,7 @@ Le `load` event n'est jamais déclenché par Turbopack dev à cause des WebSocke
 
 - Toute navigation passe par `GoToAsync` (ou `NavigateAsync` du POM) qui combine `DOMContentLoaded` + un wait best-effort de 5 s sur `Load` (tolérant l'`TimeoutException`).
 - Avant d'interagir avec un composant client (input contrôlé, dropdown), le wait Load laisse à React le temps d'attacher ses handlers.
+- `GoToAsync` échoue immédiatement (`Assert.Fail`) si la réponse est ≥ 500, au lieu d'attendre le `DefaultTimeout` de Playwright. `LoginAsync` fait une **race** entre l'apparition de `#email` et d'un marqueur d'erreur Laravel (`Internal Server Error`, `LogicException`) pour diagnostiquer vite une panne côté auth.
 
 ### Sélecteur footer
 
@@ -264,3 +267,19 @@ Les tests dépendent de données réelles servies par `GET /api/games`. Sans see
 - `Search_*` avec requêtes spécifiques (« counter-strike », « elden ring ») deviennent `Inconclusive`
 
 Prévoir un seed minimal pour la CI (déjà présent via `scripts/seed_games.sql`).
+
+### Clés Passport (OAuth) du service auth
+
+L'entrypoint `authentication/docker-entrypoint.sh` ne régénère les clés que si `storage/oauth-private.key` est **absent** — si un fichier invalide ou corrompu est présent, Passport échoue avec `LogicException: Unable to read key from file` (HTTP 500 sur `/oauth/authorize`) et toute la chaîne OAuth des tests tombe.
+
+Prévention :
+- `authentication/.dockerignore` exclut `storage/oauth-*.key` pour que les clés du host ne soient jamais baked dans l'image — chaque build régénère des clés fraîches.
+- Ne pas committer ces fichiers (ils sont déjà hors de git).
+
+Remédiation si la panne arrive :
+```bash
+sudo rm authentication/storage/oauth-*.key   # si fichiers root:root hérités d'un ancien conteneur
+docker compose down -v                        # wipe postgres auth (tokens obsolètes)
+docker compose up -d --build auth postgres
+docker logs condensation-auth-1 | grep -i passport   # doit dire "Generating Passport keys..."
+```
