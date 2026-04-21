@@ -844,8 +844,20 @@ components:
       properties:
         status:
           type: integer
+          description: Code HTTP de l'erreur
+        error:
+          type: string
+          description: Code d'erreur (ex. NOT_FOUND, BAD_REQUEST)
         message:
           type: string
+          description: Message d'erreur détaillé
+        path:
+          type: string
+          description: Chemin de la requête qui a provoqué l'erreur
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp de l'erreur
 
     Screenshot:
       type: object
