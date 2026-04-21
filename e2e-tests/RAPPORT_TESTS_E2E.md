@@ -117,8 +117,7 @@ Le HeroCarousel et le menu utilisateur sont intégralement testés via ARIA.
 | `OrderTests` | 6 | ✅ | Heading, accès depuis user menu, empty OR populated |
 | `ProfileTests` | 14 | ✅ | Header profil, stats, tabs (Overview/Badges/Order History), section Steam |
 | `SettingsTests` | 21 | ✅ | Account, Wallet (incl. modal Top Up + validation min 1 $), Linked Accounts, Notifications, Privacy |
-| `UserJourneyTests` | 3 | — | Parcours anonymes bout-en-bout : catalogue → produit, recherche → panier, gestion quantité + clear |
-| `AuthenticatedUserJourneyTests` | 2 | ✅ | Login → cart → modale paiement ; menu utilisateur → profile → orders → logout |
+| `UserJourneyTests` | 5 | partiel | 3 parcours anonymes (catalogue → produit, recherche → panier, gestion quantité) + 2 parcours authentifiés (paiement, profile → orders → logout) dans la même fixture |
 | **TOTAL** | **169** | | |
 
 ### Répartition fonctionnelle
@@ -137,17 +136,15 @@ Parcours utilisateur complet ......  5 tests   (UserJourney + AuthenticatedUserJ
 
 ### Parcours utilisateur bout-en-bout
 
-Les fixtures `UserJourneyTests` et `AuthenticatedUserJourneyTests` enchaînent plusieurs pages en une même scénarisation pour garantir que les chemins critiques restent connectés.
-
-> ⚠️ **Attention au filtrage.** Les deux fixtures vivent dans le **même fichier** `Tests/UserJourneyTests.cs` mais ce sont deux **classes distinctes** — la première (`UserJourneyTests`, 3 tests anonymes) et la seconde (`AuthenticatedUserJourneyTests`, 2 tests authentifiés). Un filtre `FullyQualifiedName~.UserJourneyTests.` (le raccourci `--class UserJourneyTests` du script `run-e2e-with-report.sh`) ne matche **que les 3 premiers**. Pour lancer les 5 parcours d'un coup, utiliser `--name Journey_` ou le filtre union `FullyQualifiedName~UserJourneyTests|FullyQualifiedName~AuthenticatedUserJourneyTests`.
+La fixture `UserJourneyTests` enchaîne plusieurs pages en une même scénarisation pour garantir que les chemins critiques restent connectés. Les 3 parcours anonymes et les 2 authentifiés vivent dans la **même classe** — les tests auth appellent `LoginAsync()` explicitement en tête de corps plutôt que via un `[SetUp]` partagé, ce qui permet à un simple `--class UserJourneyTests` de tous les cibler.
 
 | Test | Étapes |
 |---|---|
 | `Journey_AnonymousVisitor_BrowsesCatalogAndOpensProduct` | Accueil → `/games` → 1ʳᵉ fiche produit (titre + Add to Cart visibles) |
 | `Journey_AnonymousVisitor_SearchesAndAddsGameToCart` | Slug extrait du catalogue → recherche via header → résultat → Add to Cart → `/cart` (≥ 1 item) |
 | `Journey_AnonymousVisitor_ManagesCartQuantityThenEmptiesCart` | Ajout → incrément quantité (+1) → Clear cart → empty state |
-| `Journey_LoggedInUser_AddsGameToCartAndReachesPaymentModal` | Login → catalogue → ajout → panier → Proceed to Checkout → modale (Balance + Stripe) → Cancel |
-| `Journey_LoggedInUser_VisitsProfileOrdersThenLogsOut` | Menu user → `/profile` (Member since visible) → `/orders` (heading) → Logout |
+| `Journey_LoggedInUser_AddsGameToCartAndReachesPaymentModal` | `LoginAsync()` → catalogue → ajout → panier → Proceed to Checkout → modale (Balance + Stripe) → Cancel |
+| `Journey_LoggedInUser_VisitsProfileOrdersThenLogsOut` | `LoginAsync()` → menu user → `/profile` (Member since visible) → `/orders` (heading) → Logout |
 
 Choix de conception :
 - Le terme de recherche provient du **premier slug du catalogue** (pas d'hypothèse sur le seed), ce qui évite l'`Inconclusive`.
@@ -205,16 +202,12 @@ dotnet test --filter "FullyQualifiedName~CartTests"           # une fixture
 dotnet test --filter "Name=HomePage_ShouldLoadSuccessfully"   # un test
 dotnet test --logger "console;verbosity=detailed"             # logs par test
 
-# Uniquement les parcours utilisateur — le fichier UserJourneyTests.cs contient
-# DEUX classes distinctes (UserJourneyTests + AuthenticatedUserJourneyTests).
-# Pour les 5 d'un coup, on cible les deux classes ou on filtre par préfixe de nom :
-dotnet test --filter "FullyQualifiedName~UserJourneyTests|FullyQualifiedName~AuthenticatedUserJourneyTests"
-dotnet test --filter "Name~Journey_"                                    # équivalent par nom
+# Tous les parcours utilisateur (5 tests, une seule fixture)
+dotnet test --filter "FullyQualifiedName~UserJourneyTests"
 
 # Variantes plus granulaires
-dotnet test --filter "FullyQualifiedName~.UserJourneyTests."            # 3 parcours anonymes seulement
-dotnet test --filter "FullyQualifiedName~AuthenticatedUserJourneyTests" # 2 parcours authentifiés seulement
-dotnet test --filter "Name~Journey_LoggedInUser"                        # uniquement les parcours loggés
+dotnet test --filter "Name~Journey_AnonymousVisitor"    # 3 parcours anonymes
+dotnet test --filter "Name~Journey_LoggedInUser"        # 2 parcours authentifiés
 
 E2E_TIMEOUT=20000 E2E_BASE_URL=http://localhost:4000 dotnet test
 ```

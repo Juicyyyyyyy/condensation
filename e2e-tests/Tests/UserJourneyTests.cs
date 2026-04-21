@@ -11,6 +11,11 @@ namespace Condensation.E2E.Tests.Tests;
 ///
 /// These tests do not add unit-level coverage — existing fixtures already do that.
 /// Their purpose is to guarantee the critical paths stay wired together.
+///
+/// Both anonymous and authenticated journeys live in this single fixture;
+/// authenticated tests call <see cref="BaseTest.LoginAsync"/> explicitly at
+/// their entry point rather than relying on a shared [SetUp], so a single
+/// filter (e.g. <c>--class UserJourneyTests</c>) captures all five.
 /// </summary>
 [TestFixture]
 public class UserJourneyTests : BaseTest
@@ -129,15 +134,7 @@ public class UserJourneyTests : BaseTest
         await Page.Locator("button:has-text('Add to Cart')").First.ClickAsync();
         await Expect(Page.Locator("button:has-text('Added!')")).ToBeVisibleAsync();
     }
-}
 
-/// <summary>
-/// Authenticated user-journey tests — chain login, purchase path up to the
-/// payment modal, navigation through account pages, and logout.
-/// </summary>
-[TestFixture]
-public class AuthenticatedUserJourneyTests : AuthenticatedBaseTest
-{
     // ════════════════════════════════════════════════════════════════════════════
     // Journey 4 — Logged-in user buys a game up to the payment modal
     // ════════════════════════════════════════════════════════════════════════════
@@ -145,6 +142,8 @@ public class AuthenticatedUserJourneyTests : AuthenticatedBaseTest
     [Test]
     public async Task Journey_LoggedInUser_AddsGameToCartAndReachesPaymentModal()
     {
+        await LoginAsync();
+
         await GoToAsync($"{TestSettings.BaseUrl}/games");
 
         var firstGameLink = Page.Locator("main a[href*='/games/']").First;
@@ -175,6 +174,8 @@ public class AuthenticatedUserJourneyTests : AuthenticatedBaseTest
     [Test]
     public async Task Journey_LoggedInUser_VisitsProfileOrdersThenLogsOut()
     {
+        await LoginAsync();
+
         await Expect(Page.Locator("button[aria-label='User menu']")).ToBeVisibleAsync();
 
         await Page.Locator("button[aria-label='User menu']").ClickAsync();
