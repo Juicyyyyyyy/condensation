@@ -34,6 +34,7 @@
               <x-input-label for="password" :value="__('Password')" />
               @if (Route::has('password.request'))
                 <a href="{{ route('password.request', request()->query()) }}"
+                   tabindex="-1"
                    class="text-xs font-bold tracking-widest uppercase text-secondary/80 transition-colors hover:text-secondary">
                   {{ __('Forgot password?') }}
                 </a>
@@ -43,7 +44,7 @@
               <input id="password" type="password" name="password"
                      required autocomplete="current-password"
                      placeholder="{{ __('Password') }}"
-                     class="w-full rounded-lg border-0 bg-surface-container-highest px-4 py-4 pr-12 font-headline text-sm text-on-surface placeholder:text-on-surface-variant/60 outline-none transition-all focus:ring-1 focus:ring-primary/40" />
+                     class="w-full rounded-lg border-0 bg-surface-container-highest px-4 py-4 pr-12 font-body text-sm text-on-surface placeholder:text-on-surface-variant/60 outline-none transition-all focus:ring-1 focus:ring-primary/40" />
               <button type="button" tabindex="-1" aria-label="{{ __('Show password') }}"
                       onclick="togglePassword('password', this)"
                       class="absolute right-3 top-1/2 -translate-y-1/2 flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-bright hover:text-on-surface">
@@ -68,14 +69,14 @@
             <label for="remember_me" class="inline-flex items-center cursor-pointer">
               <input id="remember_me" type="checkbox" name="remember"
                      class="rounded border-outline bg-surface-container-highest accent-[var(--primary)] focus:ring-primary/40" />
-              <span class="ms-2 text-sm text-on-surface-variant">{{ __('Remember me') }}</span>
+              <span class="ms-2 text-md text-on-surface-variant">{{ __('Remember me') }}</span>
             </label>
           </div>
           <x-primary-button class="mt-2">{{ __('Sign In') }}</x-primary-button>
         </form>
         @if (Route::has('register'))
           <div class="mt-8 text-center">
-            <p class="text-sm text-on-surface-variant">
+            <p class="text-md text-on-surface-variant">
               {{ __("Don't have an account?") }}
               <a href="{{ route('register', request()->query()) }}" class="ml-1 font-bold text-primary hover:underline">
                 {{ __('Sign up') }}

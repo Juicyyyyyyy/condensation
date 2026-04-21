@@ -49,7 +49,7 @@
         <div class="group relative">
           <input id="password" type="password" name="password"
                  required autocomplete="new-password" placeholder="{{ __('8+ characters') }}"
-                 class="w-full rounded-lg border-0 bg-surface-container-highest px-4 py-4 pr-12 font-headline text-sm text-on-surface placeholder:text-on-surface-variant/60 outline-none transition-all focus:ring-1 focus:ring-primary/40" />
+                 class="w-full rounded-lg border-0 bg-surface-container-highest px-4 py-4 pr-12 font-body text-sm text-on-surface placeholder:text-on-surface-variant/60 outline-none transition-all focus:ring-1 focus:ring-primary/40" />
           <button type="button" tabindex="-1" aria-label="{{ __('Show password') }}"
                   onclick="togglePassword('password', this)"
                   class="absolute right-3 top-1/2 -translate-y-1/2 flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-bright hover:text-on-surface">
@@ -76,7 +76,7 @@
         <div class="group relative">
           <input id="password_confirmation" type="password" name="password_confirmation"
                  required autocomplete="new-password" placeholder="{{ __('Repeat your password') }}"
-                 class="w-full rounded-lg border-0 bg-surface-container-highest px-4 py-4 pr-12 font-headline text-sm text-on-surface placeholder:text-on-surface-variant/60 outline-none transition-all focus:ring-1 focus:ring-primary/40" />
+                 class="w-full rounded-lg border-0 bg-surface-container-highest px-4 py-4 pr-12 font-body text-sm text-on-surface placeholder:text-on-surface-variant/60 outline-none transition-all focus:ring-1 focus:ring-primary/40" />
           <button type="button" tabindex="-1" aria-label="{{ __('Show confirm password') }}"
                   onclick="togglePassword('password_confirmation', this)"
                   class="absolute right-3 top-1/2 -translate-y-1/2 flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-bright hover:text-on-surface">
@@ -108,7 +108,7 @@
           </svg>
         </button>
         </div>
-        <p class="text-sm text-on-surface-variant leading-snug">
+        <p class="text-md text-on-surface-variant leading-snug">
           {{ __('I agree to the') }}
           <a href="#" class="font-semibold text-primary hover:underline">{{ __('Terms of Service') }}</a>
           {{ __('and') }}
@@ -118,13 +118,13 @@
 
       {{-- Submit: raw <button> (not x-primary-button) — needs stable id for initTermsCheckbox() --}}
       <button id="register-submit" type="submit" disabled
-              class="mt-2 inline-flex w-full cursor-not-allowed items-center justify-center rounded-lg bg-gradient-to-r from-primary to-primary-container py-4 font-headline text-base font-black tracking-tight text-on-primary opacity-40 shadow-none transition-all">
+              class="mt-2 inline-flex w-full cursor-not-allowed items-center justify-center rounded-lg bg-gradient-to-r from-primary to-primary-container py-4 font-headline text-base font-black tracking-tight text-on-primary-fixed opacity-40 shadow-none transition-all">
         {{ __('Create Account') }}
       </button>
     </form>
 
         <div class="mt-8 text-center">
-          <p class="text-sm text-on-surface-variant">
+          <p class="text-md text-on-surface-variant">
             {{ __('Already have an account?') }}
             <a href="{{ route('login', request()->query()) }}" class="ml-1 font-bold text-primary hover:underline">
               {{ __('Sign in') }}
