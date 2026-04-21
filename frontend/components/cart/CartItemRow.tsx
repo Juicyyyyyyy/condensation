@@ -72,7 +72,7 @@ export function CartItemRow({ item }: { item: CartItem }) {
 
       <div className="text-right">
         {hasDiscount ? (
-          <div className="inline-block rounded-sm bg-amber-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-tight text-on-tertiary-container">
+          <div className="inline-block rounded-sm bg-amber-300/10 px-2 py-1 text-xs font-semibold uppercase tracking-tight border-amber-300 text-amber-300">
             -{item.discountPercent}% OFF
           </div>
         ) : null}

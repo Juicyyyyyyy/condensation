@@ -31,13 +31,17 @@ export default async function ProductDetailPage({ params }: Props) {
   const appid = Number(id);
   if (isNaN(appid)) notFound();
 
-  const [steamData, relatedGames, { isLoggedIn, userName }] = await Promise.all([
+  const [steamData, { isLoggedIn, userName }] = await Promise.all([
     fetchSteamAppDetails(appid),
-    getRelatedGames(),
     getAuthState(),
   ]);
 
   if (!steamData) notFound();
+
+  const firstGenreId = steamData.genres[0]?.id;
+  const relatedGames = firstGenreId
+    ? await getRelatedGames(firstGenreId, steamData.id)
+    : [];
 
   const game: BackendGameDetail = steamData;
 
