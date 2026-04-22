@@ -1,5 +1,6 @@
 package fr.fullstack.backend.unit.controller;
 
+import fr.fullstack.backend.config.AuthServiceIntrospector.SimpleOAuth2Principal;
 import fr.fullstack.backend.controller.BalanceController;
 import fr.fullstack.backend.dto.BalanceRequest;
 import fr.fullstack.backend.service.BalanceService;
@@ -30,7 +31,7 @@ class BalanceControllerTest {
     void getBalance_returnsServiceResult() {
         when(balanceService.getBalance(7)).thenReturn(1234);
 
-        ResponseEntity<Map<String, Integer>> response = balanceController.getBalance(7);
+        ResponseEntity<Map<String, Integer>> response = balanceController.getBalance(new SimpleOAuth2Principal(7));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).containsEntry("balance", 1234);
@@ -40,17 +41,17 @@ class BalanceControllerTest {
     void getBalance_zero_returnsZero() {
         when(balanceService.getBalance(1)).thenReturn(0);
 
-        ResponseEntity<Map<String, Integer>> response = balanceController.getBalance(1);
+        ResponseEntity<Map<String, Integer>> response = balanceController.getBalance(new SimpleOAuth2Principal(1));
 
         assertThat(response.getBody()).containsEntry("balance", 0);
     }
 
     @Test
     void updateBalance_success_returnsTrue() {
-        BalanceRequest req = new BalanceRequest(1, 500);
+        BalanceRequest req = new BalanceRequest(500);
         when(balanceService.updateBalance(1, 500)).thenReturn(true);
 
-        ResponseEntity<Map<String, Boolean>> response = balanceController.updateBalance(req);
+        ResponseEntity<Map<String, Boolean>> response = balanceController.updateBalance(req, new SimpleOAuth2Principal(1));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).containsEntry("success", true);
@@ -59,10 +60,10 @@ class BalanceControllerTest {
 
     @Test
     void updateBalance_failure_returnsFalse() {
-        BalanceRequest req = new BalanceRequest(1, -5000);
+        BalanceRequest req = new BalanceRequest(-5000);
         when(balanceService.updateBalance(1, -5000)).thenReturn(false);
 
-        ResponseEntity<Map<String, Boolean>> response = balanceController.updateBalance(req);
+        ResponseEntity<Map<String, Boolean>> response = balanceController.updateBalance(req, new SimpleOAuth2Principal(1));
 
         assertThat(response.getBody()).containsEntry("success", false);
     }

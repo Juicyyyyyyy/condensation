@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type { RelatedGame } from "@/lib/types";
 
 export function RelatedGames({ games }: { games: RelatedGame[] }) {
@@ -30,23 +31,22 @@ export function RelatedGames({ games }: { games: RelatedGame[] }) {
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {games.map((game, i) => (
+        {games.map((game) => (
           <a
             key={game.id}
-            href="#"
+            href={`/games/${game.steamAppId}`}
             className="group flex flex-col gap-2 rounded-xl bg-surface-container-high p-3 transition-colors hover:bg-surface-bright"
           >
-            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg">
-              <div
-                className="h-full w-full"
-                style={{
-                  background: `linear-gradient(${
-                    135 + i * 45
-                  }deg, hsl(${180 + i * 40}, 50%, 15%), hsl(${
-                    200 + i * 30
-                  }, 40%, 10%))`,
-                }}
-              />
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-surface-container-highest">
+              {game.headerImage && (
+                <Image
+                  src={game.headerImage}
+                  alt={game.name}
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                />
+              )}
               <span className="absolute bottom-2 left-2 rounded bg-primary/90 px-2 py-0.5 text-[10px] font-bold uppercase text-on-primary-fixed">
                 {game.genreBadge}
               </span>

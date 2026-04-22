@@ -12,7 +12,7 @@ import { formatCents } from "@/lib/format-price";
 const navLinks = [
   { label: "Store", href: "/" },
   { label: "Browse", href: "/games" },
-  { label: "Support", href: "#" },
+  { label: "Contact", href: "/contact" },
 ];
 
 interface PreviewResult {

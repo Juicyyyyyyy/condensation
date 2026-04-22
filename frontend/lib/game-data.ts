@@ -80,12 +80,12 @@ export async function getPreOrders(): Promise<Game[]> {
 
 /* ── Budget Deals ── */
 
-function buildDealTier(label: string, maxCents: number, items: Game[]): DealTier {
+function buildDealTier(label: string, minCents: number, maxCents: number, items: Game[]): DealTier {
   return {
     label,
     maxPrice: maxCents / 100,
     games: items
-      .filter((g) => g.priceFinal > 0 && g.priceFinal <= maxCents && g.reductionPercentage > 0)
+      .filter((g) => g.priceFinal > minCents && g.priceFinal <= maxCents && g.reductionPercentage > 0)
       .slice(0, 6),
   };
 }
@@ -99,21 +99,38 @@ export async function getDealTiers(): Promise<DealTier[]> {
   ].filter((g) => g.reductionPercentage > 0 && g.priceFinal > 0);
 
   return [
-    buildDealTier("Under €5", 500, allDiscounted),
-    buildDealTier("Under €10", 1000, allDiscounted),
-    buildDealTier("Under €20", 2000, allDiscounted),
-    buildDealTier("Under €50", 5000, allDiscounted),
+    buildDealTier("Under €5",    0,    500,  allDiscounted),
+    buildDealTier("Under €10",   500,  1000, allDiscounted),
+    buildDealTier("Under €20",   1000, 2000, allDiscounted),
+    buildDealTier("Under €50",   2000, 5000, allDiscounted),
   ];
 }
 
 /* ── Related games ── */
 
-export async function getRelatedGames(): Promise<RelatedGame[]> {
-  const data = await fetchFeaturedData();
-  return data.specials.slice(0, 4).map((game, i) => ({
-    ...game,
-    genreBadge: ["RPG", "ACTION", "SHOOTER", "ADVENTURE"][i % 4],
-  }));
+export async function getRelatedGames(
+  genreId: number,
+  excludeId?: number,
+  size = 8
+): Promise<RelatedGame[]> {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+  const url = new URL(`${baseUrl}/api/steam/games`);
+  url.searchParams.set("genreId", String(genreId));
+  url.searchParams.set("size", String(size));
+
+  const res = await fetch(url.toString(), { cache: "no-store" });
+  if (!res.ok) return [];
+
+  const data: BackendPage = await res.json();
+
+  return data.content
+    .filter((game) => game.id !== excludeId)
+    .slice(0, 4)
+    .map((game) => ({
+      ...game,
+      genreBadge: game.genres[0]?.description?.toUpperCase() ?? "GAME",
+    }));
 }
 
 export const allGenres: string[] = [

@@ -1,5 +1,6 @@
 package fr.fullstack.backend.unit.controller;
 
+import fr.fullstack.backend.config.AuthServiceIntrospector.SimpleOAuth2Principal;
 import fr.fullstack.backend.controller.OrderController;
 import fr.fullstack.backend.dto.OrderDto;
 import fr.fullstack.backend.dto.OrderRequest;
@@ -45,7 +46,7 @@ class OrderControllerTest {
         when(orderService.getUserOrders(7)).thenReturn(List.of(o));
         when(mapper.toOrderDtoList(List.of(o))).thenReturn(List.of(dto));
 
-        ResponseEntity<Map<String, List<OrderDto>>> response = orderController.getUserOrders(7);
+        ResponseEntity<Map<String, List<OrderDto>>> response = orderController.getUserOrders(new SimpleOAuth2Principal(7));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).containsKey("orders");
@@ -59,7 +60,7 @@ class OrderControllerTest {
         when(orderService.getOrderDetails(1, 7)).thenReturn(o);
         when(mapper.toOrderDto(o)).thenReturn(dto);
 
-        ResponseEntity<Map<String, OrderDto>> response = orderController.getOrderDetails(1, 7);
+        ResponseEntity<Map<String, OrderDto>> response = orderController.getOrderDetails(1, new SimpleOAuth2Principal(7));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).containsKey("order");
@@ -68,13 +69,13 @@ class OrderControllerTest {
 
     @Test
     void createOrder_delegatesToServiceAndReturnsSuccess() {
-        OrderRequest req = new OrderRequest(7, List.of(
+        OrderRequest req = new OrderRequest(List.of(
                 new OrderRequest.OrderRequestItem(10L, 2),
                 new OrderRequest.OrderRequestItem(20L, 1)
         ));
         when(orderService.createOrder(eq(7), any())).thenReturn(List.of());
 
-        ResponseEntity<Map<String, String>> response = orderController.createOrder(req);
+        ResponseEntity<Map<String, String>> response = orderController.createOrder(req, new SimpleOAuth2Principal(7));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).containsEntry("message", "Commande effectuée avec succès");
@@ -82,13 +83,13 @@ class OrderControllerTest {
 
     @Test
     void createOrder_translatesRequestItemsCorrectly() {
-        OrderRequest req = new OrderRequest(7, List.of(
+        OrderRequest req = new OrderRequest(List.of(
                 new OrderRequest.OrderRequestItem(10L, 2),
                 new OrderRequest.OrderRequestItem(20L, 3)
         ));
         when(orderService.createOrder(eq(7), any())).thenReturn(List.of());
 
-        orderController.createOrder(req);
+        orderController.createOrder(req, new SimpleOAuth2Principal(7));
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<OrderService.OrderRequestItem>> captor =
@@ -105,10 +106,10 @@ class OrderControllerTest {
 
     @Test
     void createOrder_withEmptyGames_stillCallsService() {
-        OrderRequest req = new OrderRequest(7, List.of());
+        OrderRequest req = new OrderRequest(List.of());
         when(orderService.createOrder(eq(7), any())).thenReturn(List.of());
 
-        ResponseEntity<Map<String, String>> response = orderController.createOrder(req);
+        ResponseEntity<Map<String, String>> response = orderController.createOrder(req, new SimpleOAuth2Principal(7));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         verify(orderService).createOrder(eq(7), any());
