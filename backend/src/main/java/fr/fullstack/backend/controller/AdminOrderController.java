@@ -27,7 +27,8 @@ public class AdminOrderController {
     @GetMapping
     public ResponseEntity<?> listOrders(
             @RequestHeader(value = "Authorization", required = false) String auth) {
-        if (authProxyService.requireAdminToken(auth) == null) return forbidden();
+        ResponseEntity<?> err = authProxyService.adminGuard(auth);
+        if (err != null) return err;
         List<AdminOrderDto> orders = adminOrderService.findAll();
         return ResponseEntity.ok(orders);
     }
@@ -36,7 +37,8 @@ public class AdminOrderController {
     public ResponseEntity<?> getOrder(
             @RequestHeader(value = "Authorization", required = false) String auth,
             @PathVariable Integer id) {
-        if (authProxyService.requireAdminToken(auth) == null) return forbidden();
+        ResponseEntity<?> err = authProxyService.adminGuard(auth);
+        if (err != null) return err;
         try {
             return ResponseEntity.ok(adminOrderService.findById(id));
         } catch (EntityNotFoundException e) {
@@ -48,7 +50,8 @@ public class AdminOrderController {
     public ResponseEntity<?> createOrder(
             @RequestHeader(value = "Authorization", required = false) String auth,
             @RequestBody AdminOrderRequest request) {
-        if (authProxyService.requireAdminToken(auth) == null) return forbidden();
+        ResponseEntity<?> err = authProxyService.adminGuard(auth);
+        if (err != null) return err;
         try {
             AdminOrderDto created = adminOrderService.create(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
@@ -62,7 +65,8 @@ public class AdminOrderController {
             @RequestHeader(value = "Authorization", required = false) String auth,
             @PathVariable Integer id,
             @RequestBody AdminOrderRequest request) {
-        if (authProxyService.requireAdminToken(auth) == null) return forbidden();
+        ResponseEntity<?> err = authProxyService.adminGuard(auth);
+        if (err != null) return err;
         try {
             return ResponseEntity.ok(adminOrderService.update(id, request));
         } catch (EntityNotFoundException e) {
@@ -74,7 +78,8 @@ public class AdminOrderController {
     public ResponseEntity<?> deleteOrder(
             @RequestHeader(value = "Authorization", required = false) String auth,
             @PathVariable Integer id) {
-        if (authProxyService.requireAdminToken(auth) == null) return forbidden();
+        ResponseEntity<?> err = authProxyService.adminGuard(auth);
+        if (err != null) return err;
         try {
             adminOrderService.delete(id);
             return ResponseEntity.noContent().build();
@@ -83,7 +88,4 @@ public class AdminOrderController {
         }
     }
 
-    private ResponseEntity<?> forbidden() {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Forbidden"));
-    }
 }

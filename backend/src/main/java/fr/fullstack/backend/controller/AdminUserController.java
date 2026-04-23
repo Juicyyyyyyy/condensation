@@ -2,7 +2,6 @@ package fr.fullstack.backend.controller;
 
 import fr.fullstack.backend.service.AuthProxyService;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,57 +17,52 @@ public class AdminUserController {
     }
 
     @GetMapping
-    public ResponseEntity<String> listUsers(
+    public ResponseEntity<?> listUsers(
             @RequestHeader(value = "Authorization", required = false) String auth) {
-        if (authProxyService.requireAdminToken(auth) == null) return forbidden();
-        ResponseEntity<String> resp = authProxyService.proxy("/api/admin/users", HttpMethod.GET, auth, null);
-        return toJson(resp);
+        ResponseEntity<?> err = authProxyService.adminGuard(auth);
+        if (err != null) return err;
+        return toJson(authProxyService.proxy("/api/admin/users", HttpMethod.GET, auth, null));
     }
 
     @PostMapping
-    public ResponseEntity<String> createUser(
+    public ResponseEntity<?> createUser(
             @RequestHeader(value = "Authorization", required = false) String auth,
             @RequestBody String body) {
-        if (authProxyService.requireAdminToken(auth) == null) return forbidden();
-        ResponseEntity<String> resp = authProxyService.proxy("/api/admin/users", HttpMethod.POST, auth, body);
-        return toJson(resp);
+        ResponseEntity<?> err = authProxyService.adminGuard(auth);
+        if (err != null) return err;
+        return toJson(authProxyService.proxy("/api/admin/users", HttpMethod.POST, auth, body));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<String> getUser(
+    public ResponseEntity<?> getUser(
             @RequestHeader(value = "Authorization", required = false) String auth,
             @PathVariable String id) {
-        if (authProxyService.requireAdminToken(auth) == null) return forbidden();
-        ResponseEntity<String> resp = authProxyService.proxy("/api/admin/users/" + id, HttpMethod.GET, auth, null);
-        return toJson(resp);
+        ResponseEntity<?> err = authProxyService.adminGuard(auth);
+        if (err != null) return err;
+        return toJson(authProxyService.proxy("/api/admin/users/" + id, HttpMethod.GET, auth, null));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateUser(
+    public ResponseEntity<?> updateUser(
             @RequestHeader(value = "Authorization", required = false) String auth,
             @PathVariable String id,
             @RequestBody String body) {
-        if (authProxyService.requireAdminToken(auth) == null) return forbidden();
-        ResponseEntity<String> resp = authProxyService.proxy("/api/admin/users/" + id, HttpMethod.PUT, auth, body);
-        return toJson(resp);
+        ResponseEntity<?> err = authProxyService.adminGuard(auth);
+        if (err != null) return err;
+        return toJson(authProxyService.proxy("/api/admin/users/" + id, HttpMethod.PUT, auth, body));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteUser(
+    public ResponseEntity<?> deleteUser(
             @RequestHeader(value = "Authorization", required = false) String auth,
             @PathVariable String id) {
-        if (authProxyService.requireAdminToken(auth) == null) return forbidden();
+        ResponseEntity<?> err = authProxyService.adminGuard(auth);
+        if (err != null) return err;
         ResponseEntity<String> resp = authProxyService.proxy("/api/admin/users/" + id, HttpMethod.DELETE, auth, null);
         if (resp.getStatusCode().value() == 204) {
             return ResponseEntity.noContent().build();
         }
         return toJson(resp);
-    }
-
-    private ResponseEntity<String> forbidden() {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body("{\"error\":\"Forbidden\"}");
     }
 
     private ResponseEntity<String> toJson(ResponseEntity<String> resp) {
