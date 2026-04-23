@@ -1,5 +1,6 @@
 package fr.fullstack.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,7 @@ public class GameCompany {
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("gameId")
     @JoinColumn(name = "game_id")
+    @JsonIgnore
     private Game game;
 
     @ManyToOne(fetch = FetchType.LAZY)
