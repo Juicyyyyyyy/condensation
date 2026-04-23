@@ -27,7 +27,8 @@ public class AdminGameController {
     @GetMapping
     public ResponseEntity<?> listGames(
             @RequestHeader(value = "Authorization", required = false) String auth) {
-        if (authProxyService.requireAdminToken(auth) == null) return forbidden();
+        ResponseEntity<?> err = authProxyService.adminGuard(auth);
+        if (err != null) return err;
         List<GameSummaryDto> games = adminGameService.findAll();
         return ResponseEntity.ok(games);
     }
@@ -36,7 +37,8 @@ public class AdminGameController {
     public ResponseEntity<?> getGame(
             @RequestHeader(value = "Authorization", required = false) String auth,
             @PathVariable Long id) {
-        if (authProxyService.requireAdminToken(auth) == null) return forbidden();
+        ResponseEntity<?> err = authProxyService.adminGuard(auth);
+        if (err != null) return err;
         try {
             return ResponseEntity.ok(adminGameService.findById(id));
         } catch (EntityNotFoundException e) {
@@ -48,7 +50,8 @@ public class AdminGameController {
     public ResponseEntity<?> createGame(
             @RequestHeader(value = "Authorization", required = false) String auth,
             @RequestBody AdminGameRequest request) {
-        if (authProxyService.requireAdminToken(auth) == null) return forbidden();
+        ResponseEntity<?> err = authProxyService.adminGuard(auth);
+        if (err != null) return err;
         try {
             GameSummaryDto created = adminGameService.create(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
@@ -62,7 +65,8 @@ public class AdminGameController {
             @RequestHeader(value = "Authorization", required = false) String auth,
             @PathVariable Long id,
             @RequestBody AdminGameRequest request) {
-        if (authProxyService.requireAdminToken(auth) == null) return forbidden();
+        ResponseEntity<?> err = authProxyService.adminGuard(auth);
+        if (err != null) return err;
         try {
             return ResponseEntity.ok(adminGameService.update(id, request));
         } catch (EntityNotFoundException e) {
@@ -76,7 +80,8 @@ public class AdminGameController {
     public ResponseEntity<?> deleteGame(
             @RequestHeader(value = "Authorization", required = false) String auth,
             @PathVariable Long id) {
-        if (authProxyService.requireAdminToken(auth) == null) return forbidden();
+        ResponseEntity<?> err = authProxyService.adminGuard(auth);
+        if (err != null) return err;
         try {
             adminGameService.delete(id);
             return ResponseEntity.noContent().build();
@@ -85,7 +90,4 @@ public class AdminGameController {
         }
     }
 
-    private ResponseEntity<?> forbidden() {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Forbidden"));
-    }
 }
