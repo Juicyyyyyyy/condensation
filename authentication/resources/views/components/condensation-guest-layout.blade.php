@@ -155,7 +155,7 @@
   </script>
 </head>
 <body class="font-body antialiased text-on-surface"
-      style="background-image: url('https://media.discordapp.net/attachments/1152679908976377997/1496023265511080007/bg.png?ex=69e85fbd&is=69e70e3d&hm=ddc55c6a2d8ba222ff6d929ca231e3ec002df29cb217d1ead9e874f374b088e9&=&format=webp&quality=lossless'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;">
+      style="background-color: #0c0e11;">
 
   <!-- Ambient glow blobs -->
   <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
@@ -164,7 +164,7 @@
   </div>
 
   <div class="flex min-h-screen flex-col">
-    <main class="flex grow items-center justify-center p-4 h-screen">
+    <main class="flex grow items-center justify-center h-screen">
       <div class="z-10 w-full h-full">
         {{ $slot }}
       </div>

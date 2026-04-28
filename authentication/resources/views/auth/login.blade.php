@@ -1,5 +1,5 @@
 <x-condensation-guest-layout>
-  <div class="w-full h-full flex gap-6 items-center">
+  <div class="w-full h-full flex items-center">
     <div class="w-1/2 mx-20">
       <a href="{{ config('app.frontend_url', '/') }}"
         class="mb-6 inline-flex items-center gap-2 text-sm font-medium text-on-surface-variant transition-colors hover:text-on-surface">
@@ -9,7 +9,7 @@
         </svg>
         {{ __('Return to Home') }}
       </a>
-      <div class="glass-panel rounded-2xl border border-outline-variant/10 p-10 shadow-2xl">
+      <div class="p-10">
         <header class="mb-10 text-center">
           <h1 class="mb-2 font-headline text-5xl font-black uppercase tracking-tighter text-on-surface">Sign In</h1>
           <p class="font-medium tracking-tight text-on-surface-variant">Access your digital armory.</p>
@@ -87,7 +87,7 @@
       </div>
     </div>
     <div class="w-full h-full object-fill">
-      <img src="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1245620/ss_b1b91299d7e4b94201ac840aa64de54d9f5cb7f3.1920x1080.jpg?t=1767883716" alt="" class="h-full w-full object-cover rounded-2xl shadow-2xl">
+      <img src="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1245620/ss_b1b91299d7e4b94201ac840aa64de54d9f5cb7f3.1920x1080.jpg?t=1767883716" alt="" class="h-full w-full object-cover">
     </div>
   </div>
 </x-condensation-guest-layout>
