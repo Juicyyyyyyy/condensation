@@ -1,7 +1,7 @@
 <x-condensation-guest-layout>
-  <div class="w-full h-full flex gap-6 items-center">
+  <div class="w-full h-full flex items-center">
     <div class="w-full h-full object-fill">
-      <img src="https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2399830/ss_f54032df135de28a4f4880057cd48c1c8b259870.1920x1080.jpg?t=1766710980" alt="" class="h-full w-full object-cover rounded-2xl shadow-2xl">
+      <img src="https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2399830/ss_f54032df135de28a4f4880057cd48c1c8b259870.1920x1080.jpg?t=1766710980" alt="" class="h-full w-full object-cover">
     </div>
     <div class="w-1/2 mx-20">
       <a href="{{ config('app.frontend_url', '/') }}"
@@ -12,7 +12,7 @@
         </svg>
         {{ __('Return to Home') }}
       </a>
-      <div class="glass-panel rounded-2xl border border-outline-variant/10 p-10 shadow-2xl">
+      <div class="p-10">
     <header class="mb-8 text-center">
       <h1 class="mb-2 font-headline text-5xl font-black uppercase tracking-tighter text-on-surface">Sign Up</h1>
       <p class="font-medium tracking-tight text-on-surface-variant">Forge your account. Enter the armory.</p>
