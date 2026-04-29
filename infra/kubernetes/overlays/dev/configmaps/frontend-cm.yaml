@@ -9,3 +9,4 @@ data:
   HOSTNAME: "0.0.0.0"
   CLIENT_ID: "ead85488-0ee1-41f9-9703-eac26103f5f4"
   BACKEND_URL: "http://backend-svc:8080"
+  INTERNAL_SECRET: "webhook-internal-secret"
