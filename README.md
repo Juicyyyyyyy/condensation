@@ -425,11 +425,3 @@ INTERNAL_SECRET=webhook-internal-secret
 ```bash
 docker compose --profile e2e up e2e-tests
 ```
-
-**Building and pushing images** (tag based on timestamp to support rollbacks):
-
-```bash
-TAG=$(date +%Y%m%d-%H%M)
-docker build -t ghcr.io/corentin-dupaigne/fullstack_project/<service>:$TAG .
-docker push ghcr.io/corentin-dupaigne/fullstack_project/<service>:$TAG
-```
